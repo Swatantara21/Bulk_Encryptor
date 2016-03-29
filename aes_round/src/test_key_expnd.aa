@@ -1,0 +1,86 @@
+$pipe in_data  : $uint<32> $depth 2
+$pipe out_data : $uint<32> $depth 2
+ 
+$module [aes_daemon] $in() $out () $is
+{	
+	
+	$pipe key_store: $uint<128> $depth 10
+	$constant RConstant : $uint<8> := _h01
+	$constant mod_const : $uint<8> := _h1b
+	
+	 $pipe key_out : $uint<128> $depth 2
+			Ina := in_data
+			Inb := in_data
+			Inc := in_data
+			Ind := in_data
+	
+	$volatile K0 := ($concat Ind Inc Inb Ina)
+			
+	
+	$branchblock[loop]{	
+			
+		$merge $entry loopback
+			$phi COUNT := ($bitcast ($uint<4>) 1) $on $entry
+					 NCOUNT $on loopback
+			$phi K_round := K0 $on $entry
+					nkey  $on loopback
+			$phi Round_C := RConstant $on $entry
+					 nRound_C $on loopback	
+		$endmerge
+		
+		$volatile $call key_expnd (K_round Round_C) (nkey)
+		
+		
+		////////next round constant
+		////////////////////////
+		//mul by 2
+		$volatile Rx2 := (Round_C << 1)
+		
+		// mul by 2 in GF
+		$volatile nRound_C := ($mux (Round_C [] 7) (Rx2 ^ mod_const) Rx2)
+		///////////////////////////
+		
+		key_store :=  nkey
+		
+			
+		$volatile NCOUNT := (COUNT + 1)
+		$if (COUNT < 10) $then
+			$place [loopback]
+		$endif	
+		
+		////////////////////////////////////////
+		///////////read
+		////////////////////////
+		//$dopipeline $depth 4 $buffering 1
+			$merge $entry loopback2
+				$phi COUNT2 := ($bitcast ($uint<4>) 1) $on $entry
+						 NCOUNT2 $on loopback2
+			
+			$endmerge
+			
+			Yout := key_store
+			
+			$volatile $split (Yout 32 32 32 32)
+					(Y3 Y2 Y1 Y0)
+		
+			out_data := Y0
+			out_data := Y1  $buffering 1
+			out_data := Y2	$buffering 2
+			out_data := Y3	$buffering 3	
+			
+			$volatile NCOUNT2 := (COUNT2 + 1)
+		
+		$if (COUNT2 < 10) $then
+			$place [loopback2]
+		$endif
+		
+		//$while (COUNT2 < 10) 
+		
+		
+		
+	}
+	
+		
+		
+}
+

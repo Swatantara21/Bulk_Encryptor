@@ -1,0 +1,91 @@
+1. Overview
+
+   The AES encryptor will be implemented as two separate
+   chains: one for encryption and one for decryption.
+
+   The encryption keys and modes of operation will be 
+   specified through a separate control/monitor interface.
+
+
+1. AES bulk encryptor specifications
+
+	Inputs
+		ENC_DATA_IN (31 downto 0)
+			data-in to be encrypted.
+		DEC_DATA_IN (31 downto 0)
+			data-in to be decrypted.
+		
+		CONFIG_IN (31 downto 0)
+			configuration/monitoring command
+			interface.
+
+
+	Outputs
+		ENC_DATA_OUT (31 downto 0)
+			encrypted data-out.
+		DEC_DATA_OUT (31 downto 0)
+			decrypted data-out.
+		
+		STATUS_OUT (31 downto 0)
+			status/config-response 
+			interface.
+
+
+2. Internal structure
+
+	E-block
+		(Encryption-block)
+
+		start-key = read-newkey-from-cbox.
+		while (1)
+		{
+			generate-round-keys
+
+			while(1)
+			{
+				in128 = ...    128 bit data from input-pipe.. of E-block
+				x0 = in128 xor k0
+				x1 = round(x1,k1)
+				x2 = round(x2,k2)
+				x3 = round(x3,k3)
+				x4 = round(x4,k4)
+				x5 = round(x5,k5)
+				...
+				x10 = round(x9,k10)
+
+				write-to-out-data on output-pipe of E-block
+
+				newkey = read-newkey-from-c-box (non-blocking)
+				if(newkey != 0)
+				{
+					send-response-to-c-box.
+					break;
+				}
+			}
+		}
+
+	D-block
+		(Decryption-block)
+
+		similar architecture to E-block.
+
+	C-block
+		(command block)
+		
+
+		while(1)
+		{
+			cmd = ... command pipe.
+			
+			if cmd_is_e_key
+			{
+				send-key-to-E-block
+				receive-and-forward-response
+			}
+			else if cmd_is_d-key
+			{
+				send-key-to-D-block
+				receive-and-forward-response
+			}
+
+		}

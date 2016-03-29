@@ -1,0 +1,213 @@
+$module [enc_round] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_out : $uint<128>) $is
+{
+	$constant mod_const : $uint<8> := _h1b //_b00011011
+	$constant sel : $uint<8> := _b01111111
+	
+
+	$volatile $split (round_in 32 32 32 32)
+			(Sa Sb Sc Sd)
+			
+		
+	$volatile $split (Sa 8 8 8 8)
+			(S00sr S01sr S02sr S03sr)
+	$volatile $split (Sb 8 8 8 8)
+			(S04sr S05sr S06sr S07sr)
+	$volatile $split (Sc 8 8 8 8)
+			(S08sr S09sr S10sr S11sr)
+	$volatile $split (Sd 8 8 8 8)
+			(S12sr S13sr S14sr S15sr)
+			
+			
+	
+	// 
+	
+		// shift rows + subbyte
+		$volatile $call sbox_demon (S00sr) (S00)
+		//S00 := Sx00
+		$volatile $call sbox_demon (S05sr) (S01)
+		//S01 := Sx01
+		$volatile $call sbox_demon (S10sr) (S02)
+		//S02 := Sx02
+		$volatile $call sbox_demon (S15sr) (S03)
+		//S03 := Sx03
+		$volatile $call sbox_demon (S04sr) (S04)
+		//S04 := Sx04
+		$volatile $call sbox_demon (S09sr) (S05)
+		//S05 := Sx05
+		$volatile $call sbox_demon (S14sr) (S06)
+		//S06 := Sx06
+		$volatile $call sbox_demon (S03sr) (S07)
+		//S07 := Sx07
+		$volatile $call sbox_demon (S08sr) (S08)
+		//S08 := Sx08
+		$volatile $call sbox_demon (S13sr) (S09)
+		//S09 := Sx09
+		$volatile $call sbox_demon (S02sr) (S10)
+		//S10 := Sx10
+		$volatile $call sbox_demon (S07sr) (S11)
+		//S11 := Sx11
+		$volatile $call sbox_demon (S12sr) (S12)
+		//S12 := Sx12
+		$volatile $call sbox_demon (S01sr) (S13)
+		//S13 := Sx13
+		$volatile $call sbox_demon (S06sr) (S14)
+		//S14 := Sx14
+		$volatile $call sbox_demon (S11sr) (S15)		
+		//S15 := Sx15
+		
+	
+		//mul by 2
+		$volatile S00x2 := (S00 << 1)
+		$volatile S01x2 := (S01 << 1)
+		$volatile S02x2 := (S02 << 1)
+		$volatile S03x2 := (S03 << 1)
+		$volatile S04x2 := (S04 << 1)
+		$volatile S05x2 := (S05 << 1)
+		$volatile S06x2 := (S06 << 1)
+		$volatile S07x2 := (S07 << 1)
+		$volatile S08x2 := (S08 << 1)
+		$volatile S09x2 := (S09 << 1)
+		$volatile S10x2 := (S10 << 1)
+		$volatile S11x2 := (S11 << 1)
+		$volatile S12x2 := (S12 << 1)
+		$volatile S13x2 := (S13 << 1)
+		$volatile S14x2 := (S14 << 1)
+		$volatile S15x2 := (S15 << 1)
+	
+		
+		
+		//
+		// mul by 2 in GF
+		$volatile S00x2g := ($mux (S00 [] 7) (S00x2 ^ mod_const) S00x2)
+		$volatile S01x2g := ($mux (S01 [] 7) (S01x2 ^ mod_const) S01x2)
+		$volatile S02x2g := ($mux (S02 [] 7) (S02x2 ^ mod_const) S02x2)
+		$volatile S03x2g := ($mux (S03 [] 7) (S03x2 ^ mod_const) S03x2)
+		$volatile S04x2g := ($mux (S04 [] 7) (S04x2 ^ mod_const) S04x2)
+		$volatile S05x2g := ($mux (S05 [] 7) (S05x2 ^ mod_const) S05x2)
+		$volatile S06x2g := ($mux (S06 [] 7) (S06x2 ^ mod_const) S06x2)
+		$volatile S07x2g := ($mux (S07 [] 7) (S07x2 ^ mod_const) S07x2)
+		$volatile S08x2g := ($mux (S08 [] 7) (S08x2 ^ mod_const) S08x2)
+		$volatile S09x2g := ($mux (S09 [] 7) (S09x2 ^ mod_const) S09x2)
+		$volatile S10x2g := ($mux (S10 [] 7) (S10x2 ^ mod_const) S10x2)
+		$volatile S11x2g := ($mux (S11 [] 7) (S11x2 ^ mod_const) S11x2)
+		$volatile S12x2g := ($mux (S12 [] 7) (S12x2 ^ mod_const) S12x2)
+		$volatile S13x2g := ($mux (S13 [] 7) (S13x2 ^ mod_const) S13x2)
+		$volatile S14x2g := ($mux (S14 [] 7) (S14x2 ^ mod_const) S14x2)
+		$volatile S15x2g := ($mux (S15 [] 7) (S15x2 ^ mod_const) S15x2)
+		
+		
+		$volatile Wc0 := ((S00 ^ S01) ^ (S02 ^ S03))
+		$volatile Wc1 := ((S04 ^ S05) ^ (S06 ^ S07))
+		$volatile Wc2 := ((S08 ^ S09) ^ (S10 ^ S11))
+		$volatile Wc3 := ((S12 ^ S13) ^ (S14 ^ S15))
+		
+				
+		//Mixcolumn
+		//colunm0
+		$volatile MX00 := ((S00x2g ^ S01x2g) ^ (Wc0 ^ S00))
+		$volatile MX01 := ((S01x2g ^ S02x2g) ^ (Wc0 ^ S01))
+		$volatile MX02 := ((S02x2g ^ S03x2g) ^ (Wc0 ^ S02))
+		$volatile MX03 := ((S03x2g ^ S00x2g) ^ (Wc0 ^ S03))
+		
+		//colunm1
+		$volatile MX04 := ((S04x2g ^ S05x2g) ^ (Wc1 ^ S04))
+		$volatile MX05 := ((S05x2g ^ S06x2g) ^ (Wc1 ^ S05))
+		$volatile MX06 := ((S06x2g ^ S07x2g) ^ (Wc1 ^ S06))
+		$volatile MX07 := ((S07x2g ^ S04x2g) ^ (Wc1 ^ S07))
+		
+		//colunm2
+		$volatile MX08 := ((S08x2g ^ S09x2g) ^ (Wc2 ^ S08))
+		$volatile MX09 := ((S09x2g ^ S10x2g) ^ (Wc2 ^ S09))
+		$volatile MX10 := ((S10x2g ^ S11x2g) ^ (Wc2 ^ S10))
+		$volatile MX11 := ((S11x2g ^ S08x2g) ^ (Wc2 ^ S11))
+		
+		//colunm3
+		$volatile MX12 := ((S12x2g ^ S13x2g) ^ (Wc3 ^ S12))
+		$volatile MX13 := ((S13x2g ^ S14x2g) ^ (Wc3 ^ S13))
+		$volatile MX14 := ((S14x2g ^ S15x2g) ^ (Wc3 ^ S14))
+		$volatile MX15 := ((S15x2g ^ S12x2g) ^ (Wc3 ^ S15))
+		
+	
+	
+		
+	$volatile Y0 := ($concat MX00 MX01 MX02 MX03)
+	$volatile Y1 := ($concat MX04 MX05 MX06 MX07)  //$buffering 2
+	$volatile Y2 := ($concat MX08 MX09 MX10 MX11)  //$buffering 3
+	$volatile Y3 := ($concat MX12 MX13 MX14 MX15) // $buffering 4
+	
+	$volatile Yout := ($concat Y0 Y1 Y2 Y3)
+	
+	//Add round key
+		$volatile round_out := (Yout ^ key_in)
+		
+}
+
+$module [enc_round_last] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_out : $uint<128>) $is
+{
+	$constant mod_const : $uint<8> := _h1b //_b00011011
+	$constant sel : $uint<8> := _b01111111
+	
+
+	$volatile $split (round_in 32 32 32 32)
+			(Sa Sb Sc Sd)
+			
+		
+	$volatile $split (Sa 8 8 8 8)
+			(S00sr S01sr S02sr S03sr)
+	$volatile $split (Sb 8 8 8 8)
+			(S04sr S05sr S06sr S07sr)
+	$volatile $split (Sc 8 8 8 8)
+			(S08sr S09sr S10sr S11sr)
+	$volatile $split (Sd 8 8 8 8)
+			(S12sr S13sr S14sr S15sr)
+			
+	
+	// 
+	
+		// shift rows + subbyte
+		$volatile $call sbox_demon (S00sr) (S00)
+		//S00 := Sx00
+		$volatile $call sbox_demon (S05sr) (S01)
+		//S01 := Sx01
+		$volatile $call sbox_demon (S10sr) (S02)
+		//S02 := Sx02
+		$volatile $call sbox_demon (S15sr) (S03)
+		//S03 := Sx03
+		$volatile $call sbox_demon (S04sr) (S04)
+		//S04 := Sx04
+		$volatile $call sbox_demon (S09sr) (S05)
+		//S05 := Sx05
+		$volatile $call sbox_demon (S14sr) (S06)
+		//S06 := Sx06
+		$volatile $call sbox_demon (S03sr) (S07)
+		//S07 := Sx07
+		$volatile $call sbox_demon (S08sr) (S08)
+		//S08 := Sx08
+		$volatile $call sbox_demon (S13sr) (S09)
+		//S09 := Sx09
+		$volatile $call sbox_demon (S02sr) (S10)
+		//S10 := Sx10
+		$volatile $call sbox_demon (S07sr) (S11)
+		//S11 := Sx11
+		$volatile $call sbox_demon (S12sr) (S12)
+		//S12 := Sx12
+		$volatile $call sbox_demon (S01sr) (S13)
+		//S13 := Sx13
+		$volatile $call sbox_demon (S06sr) (S14)
+		//S14 := Sx14
+		$volatile $call sbox_demon (S11sr) (S15)		
+		//S15 := Sx15
+		
+		
+	$volatile Y0 := ($concat S03 S02 S01 S00)
+	$volatile Y1 := ($concat S07 S06 S05 S04)  //$buffering 2
+	$volatile Y2 := ($concat S11 S10 S09 S08)  //$buffering 3
+	$volatile Y3 := ($concat S15 S14 S13 S12) // $buffering 4
+	
+	$volatile Yout := ($concat Y3 Y2 Y1 Y0)
+	
+	//Add round key
+		$volatile round_out := (Yout ^ key_in)
+		
+}
+

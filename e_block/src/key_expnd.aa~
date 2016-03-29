@@ -1,0 +1,78 @@
+$module [key_expand_single] $in(K_in  : $uint<128>  Round_C : $uint<8>) $out(K_out  : $uint<128> nRound_C : $uint<8>) $is
+{
+	
+	$constant mod_const : $uint<8> := _h1b
+	
+				
+	//$volatile K_out := K_in
+			
+				
+		$volatile $split (K_in 32 32 32 32)
+				(Kd Kc Kb Ka)
+				
+		$volatile $split (Ka 8 8 8 8)
+				(K03 K02 K01 K00)
+		$volatile $split (Kb 8 8 8 8)
+				(K07 K06 K05 K04)
+		$volatile $split (Kc 8 8 8 8)
+				(K11 K10 K09 K08)
+		$volatile $split (Kd 8 8 8 8)
+				(K15 K14 K13 K12)
+				
+		$volatile $call sbox_demon (K12) (K12sr)
+		//K12 := Kx12
+		$volatile $call sbox_demon (K13) (K13sr)
+		//K13 := Kx13
+		$volatile $call sbox_demon (K14) (K14sr)
+		//K14 := Kx14
+		$volatile $call sbox_demon (K15) (K15sr)		
+		//K15 := Kx15
+		
+		
+		
+		
+		$volatile X0 := (Round_C ^ K13sr) 
+				
+				
+		//colunm0
+		$volatile nK00 := (K00 ^ X0)
+		$volatile nK01 := (K01 ^ K14sr)
+		$volatile nK02 := (K02 ^ K15sr)
+		$volatile nK03 := (K03 ^ K12sr)
+		
+		$volatile nK04 := (K04 ^ nK00)
+		$volatile nK05 := (K05 ^ nK01)
+		$volatile nK06 := (K06 ^ nK02)
+		$volatile nK07 := (K07 ^ nK03)
+		
+		$volatile nK08 := (K08 ^ nK04)
+		$volatile nK09 := (K09 ^ nK05)
+		$volatile nK10 := (K10 ^ nK06)
+		$volatile nK11 := (K11 ^ nK07)
+		
+		$volatile nK12 := (K12 ^ nK08)
+		$volatile nK13 := (K13 ^ nK09)
+		$volatile nK14 := (K14 ^ nK10)
+		$volatile nK15 := (K15 ^ nK11)
+		
+			
+		
+		$volatile Yk0 := ($concat nK03 nK02 nK01 nK00)
+		$volatile Yk1 := ($concat nK07 nK06 nK05 nK04)  //$buffering 2
+		$volatile Yk2 := ($concat nK11 nK10 nK09 nK08)  //$buffering 3
+		$volatile Yk3 := ($concat nK15 nK14 nK13 nK12) // $buffering 4
+	
+		$volatile nKey := ($concat Yk3 Yk2 Yk1 Yk0)
+		
+		////////next round constant
+		////////////////////////
+		//mul by 2
+		$volatile Rx2 := (Round_C << 1)
+		
+		// mul by 2 in GF
+		$volatile nRound_C := ($mux (Round_C [] 7) (Rx2 ^ mod_const) Rx2)
+		
+		$volatile K_out := nKey
+		
+		
+}
