@@ -1,0 +1,56 @@
+$pipe in_data  : $uint<32> $depth 2
+$pipe out_data : $uint<32> $depth 2
+
+$pipe e_in_data  : $uint<128> $depth 2
+$pipe e_out_data : $uint<128> $depth 2
+$noblock $pipe e_key  : $uint<129> $depth 2
+
+$pipe d_in_data  : $uint<128> $depth 2
+$pipe d_out_data : $uint<128> $depth 2
+$noblock $pipe d_key  : $uint<129> $depth 2
+
+$module [c_block_demon] $in() $out() $is{
+	
+	
+	$branchblock[MAIN]  {
+		$merge $entry NoCmd $endmerge
+			cmd := in_data
+			$if (cmd == 0) $then $place[NoCmd] $endif
+		
+			key_a := in_data
+			key_b := in_data
+			key_c := in_data
+			key_d := in_data
+
+			$volatile key := ($concat ($bitcast ($uint<1>) 1) key_a key_b key_c key_d)
+
+			e_key := key
+			d_key := key
+		
+			$dopipeline $depth 2 $buffering 1
+			$merge $entry $loopback $endmerge
+			
+				in0 := in_data
+				in1 := in_data
+				in2 := in_data
+				in3 := in_data
+			
+				e_in_data := ($concat in0 in1 in2 in3)
+			
+				$volatile plaintext := e_out_data
+			
+				d_in_data := plaintext
+			
+				$volatile ciphertext := d_out_data
+			
+				$volatile $split (ciphertext 32 32 32 32) (out0 out1 out2 out3)
+			
+				out_data := out0
+				out_data := out1
+				out_data := out2
+				out_data := out3
+		
+			$while 1
+
+	}
+}

@@ -7,11 +7,13 @@ c_block version1 (basic).
 	through pipes.
 	
 	e_blockpipes:-
+	
 	e_in_data: 128-bit wide pipe for sending plaintext.
 	e_key: 129-bit wide pipe for sending command and key.
 	e_out_data: 128-bit wide pipe for recieving ciphertext.
 	
 	d_blockpipes:-
+	
 	d_in_data: 128-bit wide pipe for sending ciphetext.
 	d_key: 129-bit wide pipe for sending command and key.
 	d_out_data: 128-bit wide pipe for recieving plaintext.

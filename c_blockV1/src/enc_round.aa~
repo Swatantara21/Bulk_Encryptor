@@ -5,17 +5,17 @@ $module [enc_round] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_o
 	
 
 	$volatile $split (round_in 32 32 32 32)
-			(Sd Sc Sb Sa)
+			(Sa Sb Sc Sd)
 			
 		
 	$volatile $split (Sa 8 8 8 8)
-			(S03sr S02sr S01sr S00sr)
+			(S00sr S01sr S02sr S03sr)
 	$volatile $split (Sb 8 8 8 8)
-			(S07sr S06sr S05sr S04sr)
+			(S04sr S05sr S06sr S07sr)
 	$volatile $split (Sc 8 8 8 8)
-			(S11sr S10sr S09sr S08sr)
+			(S08sr S09sr S10sr S11sr)
 	$volatile $split (Sd 8 8 8 8)
-			(S15sr S14sr S13sr S12sr)
+			(S12sr S13sr S14sr S15sr)
 			
 			
 	
@@ -130,37 +130,36 @@ $module [enc_round] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_o
 	
 	
 		
-	$volatile Y0 := ($concat MX03 MX02 MX01 MX00)
-	$volatile Y1 := ($concat MX07 MX06 MX05 MX04)  //$buffering 2
-	$volatile Y2 := ($concat MX11 MX10 MX09 MX08)  //$buffering 3
-	$volatile Y3 := ($concat MX15 MX14 MX13 MX12) // $buffering 4
+	$volatile Y0 := ($concat MX00 MX01 MX02 MX03)
+	$volatile Y1 := ($concat MX04 MX05 MX06 MX07)  //$buffering 2
+	$volatile Y2 := ($concat MX08 MX09 MX10 MX11)  //$buffering 3
+	$volatile Y3 := ($concat MX12 MX13 MX14 MX15) // $buffering 4
 	
-	$volatile Yout := ($concat Y3 Y2 Y1 Y0)
+	$volatile Yout := ($concat Y0 Y1 Y2 Y3)
 	
 	//Add round key
 		$volatile round_out := (Yout ^ key_in)
 		
 }
 
-$module [enc_round_10] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_out : $uint<128>) $is
+$module [enc_round_last] $in(round_in : $uint<128> key_in : $uint<128>) $out (round_out : $uint<128>) $is
 {
 	$constant mod_const : $uint<8> := _h1b //_b00011011
 	$constant sel : $uint<8> := _b01111111
 	
 
 	$volatile $split (round_in 32 32 32 32)
-			(Sd Sc Sb Sa)
+			(Sa Sb Sc Sd)
 			
 		
 	$volatile $split (Sa 8 8 8 8)
-			(S03sr S02sr S01sr S00sr)
+			(S00sr S01sr S02sr S03sr)
 	$volatile $split (Sb 8 8 8 8)
-			(S07sr S06sr S05sr S04sr)
+			(S04sr S05sr S06sr S07sr)
 	$volatile $split (Sc 8 8 8 8)
-			(S11sr S10sr S09sr S08sr)
+			(S08sr S09sr S10sr S11sr)
 	$volatile $split (Sd 8 8 8 8)
-			(S15sr S14sr S13sr S12sr)
-			
+			(S12sr S13sr S14sr S15sr)
 			
 	
 	// 
@@ -211,6 +210,4 @@ $module [enc_round_10] $in(round_in : $uint<128> key_in : $uint<128>) $out (roun
 		$volatile round_out := (Yout ^ key_in)
 		
 }
-
-
 

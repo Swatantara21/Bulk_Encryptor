@@ -12,7 +12,7 @@ AA2VHDLSIM: aa2vc  vc2vhdl  vhdlsim
 TOVHDL:TOVC vc2vhdl
 
 
-TOPMODULES=-T aes_daemon
+TOPMODULES=-T c_block_demon -T d_block_demon -T e_block_demon 
 
 
 
@@ -22,8 +22,8 @@ HW: aalink aa2vc  vc2vhdl  vhdlsim
 AA2VHDL: aa2vc vc2vhdl vhdlsim
 
 # Aa to vC
-aalink: $(SRC)/prog.aa $(SRC)/sbox.aa $(SRC)/key_expnd.aa $(SRC)/enc_round.aa
-	AaLinkExtMem $(SRC)/prog.aa $(SRC)/sbox.aa $(SRC)/key_expnd.aa $(SRC)/enc_round.aa | vcFormat > prog.linked.aa
+aalink: $(SRC)/prog.aa $(SRC)/d_block.aa $(SRC)/e_block.aa 
+	AaLinkExtMem $(SRC)/prog.aa $(SRC)/d_block.aa $(SRC)/e_block.aa | vcFormat > prog.linked.aa
 	AaOpt -B prog.linked.aa | vcFormat > prog.linked.opt.aa
 
 aa2vc: prog.linked.opt.aa

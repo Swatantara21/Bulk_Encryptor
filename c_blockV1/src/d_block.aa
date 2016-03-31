@@ -1,0 +1,42 @@
+$module [d_block_demon] $in() $out () $is
+{	
+	
+	//$pipe key_store: $uint<128> $depth 10
+	$constant RConstant_1 : $uint<8> := _h01
+	
+	
+	$branchblock[MAIN]  {
+	
+		$merge $entry NotGotKeyCmd $endmerge
+		
+	   	ol_key_in := d_key
+	   	$volatile $split (ol_key_in 1 128) (ol_key_cmd ol_key)
+	   	$if(ol_key_cmd == 0) $then $place [NotGotKeyCmd] $endif
+	   	
+	   	
+	   	$merge $entry GotKeyCmd 
+	   	   //$phi key_cmd := ol_key_cmd $on $entry lkey_cmd $on GotKeyCmd
+	   	   $phi K0 := ol_key $on $entry lkey $on GotKeyCmd
+	   	$endmerge
+	   	
+	   	
+	
+	
+	$dopipeline $depth 3 $buffering 1
+	$merge $entry $loopback
+	$endmerge
+		
+		in128 := d_in_data
+
+		$volatile out := (in128 ^ K0)
+		
+		d_out_data := out
+		
+
+                lkey_in := d_key
+                $volatile $split (lkey_in 1 128) (lkey_cmd lkey)	
+	$while (lkey_cmd == 0)
+	$place [GotKeyCmd]
+    }
+}
+

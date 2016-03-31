@@ -1,22 +1,23 @@
-$volatile $module [key_expnd] $in(K_in  : $uint<128>  Round_C : $uint<8>) $out(K_out  : $uint<128>) $is
+$module [key_expand_single] $in(K_in  : $uint<128>  Round_C : $uint<8>) $out(K_out  : $uint<128> nRound_C : $uint<8>) $is
 {
 	
+	$constant mod_const : $uint<8> := _h1b
 	
 				
 	//$volatile K_out := K_in
 			
 				
 		$volatile $split (K_in 32 32 32 32)
-				(Kd Kc Kb Ka)
+				(Ka Kb Kc Kd)
 				
 		$volatile $split (Ka 8 8 8 8)
-				(K03 K02 K01 K00)
+				(K00 K01 K02 K03)
 		$volatile $split (Kb 8 8 8 8)
-				(K07 K06 K05 K04)
+				(K04 K05 K06 K07)
 		$volatile $split (Kc 8 8 8 8)
-				(K11 K10 K09 K08)
+				(K08 K09 K10 K11)
 		$volatile $split (Kd 8 8 8 8)
-				(K15 K14 K13 K12)
+				(K12 K13 K14 K15)
 				
 		$volatile $call sbox_demon (K12) (K12sr)
 		//K12 := Kx12
@@ -56,12 +57,20 @@ $volatile $module [key_expnd] $in(K_in  : $uint<128>  Round_C : $uint<8>) $out(K
 		
 			
 		
-		$volatile Yk0 := ($concat nK03 nK02 nK01 nK00)
-		$volatile Yk1 := ($concat nK07 nK06 nK05 nK04)  //$buffering 2
-		$volatile Yk2 := ($concat nK11 nK10 nK09 nK08)  //$buffering 3
-		$volatile Yk3 := ($concat nK15 nK14 nK13 nK12) // $buffering 4
+		$volatile Yk0 := ($concat nK00 nK01 nK02 nK03)
+		$volatile Yk1 := ($concat nK04 nK05 nK06 nK07)  //$buffering 2
+		$volatile Yk2 := ($concat nK08 nK09 nK10 nK11)  //$buffering 3
+		$volatile Yk3 := ($concat nK12 nK13 nK14 nK15) // $buffering 4
 	
-		$volatile nKey := ($concat Yk3 Yk2 Yk1 Yk0)
+		$volatile nKey := ($concat Yk0 Yk1 Yk2 Yk3)
+		
+		////////next round constant
+		////////////////////////
+		//mul by 2
+		$volatile Rx2 := (Round_C << 1)
+		
+		// mul by 2 in GF
+		$volatile nRound_C := ($mux (Round_C [] 7) (Rx2 ^ mod_const) Rx2)
 		
 		K_out := nKey
 		
