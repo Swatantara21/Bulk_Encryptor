@@ -1,0 +1,74 @@
+$pipe in_data  : $uint<32> $depth 2
+$pipe key_in  : $uint<32> $depth 2
+$pipe out_data : $uint<32> $depth 2
+ 
+$module [aes_daemon] $in() $out () $is
+{	
+	
+	//$pipe key_store: $uint<128> $depth 10
+	$constant RConstant_0 : $uint<8> := _h01
+	$constant mod_const : $uint<8> := _h1b
+	
+	
+	$branchblock[MAIN]  {
+	
+		$merge $entry NotGotKeyCmd $endmerge
+		
+	   	ol_key_cmd := key_in
+	   	
+	   	$if(ol_key_cmd == 0) $then $place [NotGotKeyCmd] $endif
+	   	
+	   	
+	   	$merge $entry GotKeyCmd 
+	   	   $phi key_cmd := ol_key_cmd $on $entry lkey_cmd $on GotKeyCmd
+	   	$endmerge
+	   	
+	   	Ka := key_in
+	   	Kb := key_in
+	   	Kc := key_in
+	   	Kd := key_in
+	   	
+	   	K0 := ($concat Ka Kb Kc Kd)
+	   	
+	   	$call key_expand_single(K0 RConstant_0) (K1 RConstant_1)
+	   	$call key_expand_single(K1 RConstant_1) (K2 RConstant_2)
+	   	... 10-times
+	   	
+	
+	
+	$dopipeline $depth 2 $buffering 1
+	$merge $entry $loopback
+	$endmerge
+	Ina := in_data
+					Inb := in_data
+					Inc := in_data
+					Ind := in_data
+			$volatile in128 := ($concat Ind Inc Inb Ina)
+	
+			$volatile round_S0 := (in128 ^ K0)
+			$call enc_round (round_S0 K1) (round_S1)
+			$call enc_round (round_S1 K2) (round_S2)
+			$call enc_round (round_S2 K3) (round_S3)
+			$call enc_round (round_S3 K4) (round_S4)
+			$call enc_round (round_S4 K5) (round_S5)
+			$call enc_round (round_S5 K6) (round_S6)
+			$call enc_round (round_S6 K7) (round_S7)
+			$call enc_round (round_S7 K8) (round_S8)
+			$call enc_round (round_S8 K9) (round_S9)
+			$call enc_round_last (round_S9 K10) (round_S10)
+	
+			$volatile $split (round_S10 32 32 32 32)
+
+					(Yd Yc Yb Ya)
+			
+			out_data := Ya
+			out_data := Yb
+			out_data := Yc
+			out_data := Yd
+	
+	                lkey_cmd := key_in	
+	$while (lkey_cmd == 0)
+	$place [GotKeyCmd]
+    }
+}
+

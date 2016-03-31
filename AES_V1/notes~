@@ -1,0 +1,91 @@
+AES version1 (basic).
+
+	in_data: input pipe (32-bit)
+	out_data: output pipe (32-bit)
+	
+	3 top modules: c_block, e_block and d_block
+	through pipes.
+	
+	c_block communicates to e_block and d_block using pipes
+	
+	c_block - e_block pipes:-
+	
+	e_in_data: 128-bit wide pipe for sending plaintext.
+	e_key: 129-bit wide pipe for sending command and key.
+	e_out_data: 128-bit wide pipe for recieving ciphertext.
+	
+	c_block - d_block pipes:-
+	
+	d_in_data: 128-bit wide pipe for sending ciphetext.
+	d_key: 129-bit wide pipe for sending command and key.
+	d_out_data: 128-bit wide pipe for recieving plaintext.
+	
+	
+	Implementation:
+	1. c_block
+		cmd = in_data
+		
+		while (cmd = 0)
+			cmd = in_data
+			
+		key = get new key from in_data
+		
+		e_key = key
+		d_key = key
+		
+		while 1
+		{
+			in0 = in_data
+			in1 = in_data
+			in2 = in_data
+			in3 = in_data
+			
+			e_in_data = concat(in0 in1 in2 in3)
+			
+			plaintext = e_out_data
+			
+			d_in_data = plaintext
+			
+			split (d_out_data) (out0 out1 out2 out3)
+			
+			out_data = out0
+			out_data = out1
+			out_data = out2
+			out_data = out3
+	
+		}
+		
+	2. e_block 
+		(Encryption-block)
+
+		start-key = read-newkey-from-cbox.
+		while (1)
+		{
+			generate-round-keys
+
+			while(1)
+			{
+				in128 = ...    128 bit data from e_in_data pipe
+				x0 = in128 xor k0
+				x1 = round(x1,k1)
+				x2 = round(x2,k2)
+				x3 = round(x3,k3)
+				x4 = round(x4,k4)
+				x5 = round(x5,k5)
+				...
+				x10 = round(x9,k10)
+
+				write-to-out-data on e_out_data pipe of E-block
+
+				newkey = read-newkey-from-c-box (non-blocking)
+				if(newkey != 0)
+				{
+					send-response-to-c-box.
+					break;
+				}
+			}
+		}
+			
+	2. d_block
+		(Decryption block)
+		similar to e_block 
