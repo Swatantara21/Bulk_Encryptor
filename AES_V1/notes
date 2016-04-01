@@ -92,3 +92,56 @@ AES version1 (basic).
 	2. d_block
 		(Decryption block)
 		similar to e_block 
+
+
+
+//////////////////////////////////////////////////  suggested changes..  1/4/16 MPD
+
+$pipeline $operator $module ... 
+{
+
+  $attribute delay 4
+}
+
+E-block
+
+    branchblock
+    {
+
+	    $dopipeline  $depth 8 $buffering 2 
+            $merge $entry $loopback $endmerge
+		$phi c_to_e := ZERO_129 $on $entry c_to_e_pipe $on $loopback
+            endmerge 
+
+	    valid_key := (c_to_e [] 0)
+	    new_key   := (valid_key & (($slice c_to_e 128 1) != key))
+	    key := ($slice c_to_e 128 1)
+
+	    $guard (new_key)
+		$call generate_keys (key) (k1 k2 k3 ... k10)
+
+	    $guard (valid_key)
+		$call get_input_data () (input_data)
+
+	    
+	    $guard (valid_key)
+			$call round_operation (input_data k1)  (r1_data)
+
+	    $guard (valid_key)
+			$call round_operation (r1_data k2)  (r2_data)
+
+
+
+	    $guard (valid_key)
+			$call encrypt_input (input_data key) (encrypted_data)
+
+
+
+	    $guard (valid_key) 
+			$call write_to_pt_out () () 
+
+            while 1
+    }
+
+
+
