@@ -1,0 +1,53 @@
+AaLinkExtMem /loopback.Aa | vcFormat > loopback.linked.aa
+Error: Could not read file /loopback.Aa
+AaOpt -B loopback.linked.aa | vcFormat > loopback.linked.opt.aa
+Info: elaborating the program .... initializing the call-graph
+Info: mapping object references..
+Info: checking for cycles in the call-graph ... 
+Info: module order:
+Info: marking modules reachable from root-modules ... 
+Info: propagating types in the program ... 
+Info: coalescing storage into distinct memory spaces ... 
+Info: Marking foreign pointers in modules which are not called from the program
+Info: Coalescing storage from native objects..
+Info: Finished coalescing storage.. identified 0 disjoint memory space(s)
+Info: propagating constants in the program ... 
+Aa2VC -O -C loopback.linked.opt.aa | vcFormat > loopback.vc
+Info: -O option selected, will parallelize straight-line sequences
+Info: -C option selected, will generate C-stubs for mixed C-VHDL simulation
+Info: elaborating the program .... initializing the call-graph
+Info: mapping object references..
+Info: checking for cycles in the call-graph ... 
+Info: module order:
+Info: marking modules reachable from root-modules ... 
+Info: propagating types in the program ... 
+Info: coalescing storage into distinct memory spaces ... 
+Info: Marking foreign pointers in modules which are not called from the program
+Info: Coalescing storage from native objects..
+Info: Finished coalescing storage.. identified 0 disjoint memory space(s)
+Info: propagating constants in the program ... 
+Info: Writing optimized VC model.. 
+Info: Done writing optimized VC model.. 
+vc2vhdl -D -O -S 4 -I 2 -v -a -C -e loopback -w -s ghdl -T loopback_daemon  -f loopback.vc 
+Info: -D option selected: VHDL will have debug assertions..
+Info: -O option selected, will try to compress control-path..
+Info: -S option selected: bypass stride will be set to 4.
+Info: -I option is deprecated.. has no effect.
+Info: -v option selected: lots of info will be printed (to stderr, and also dot-files of control-paths if -O option is selected).
+Info: -a option selected: will try for minimum overall circuit area.
+Info: -C option selected: will generate testbench which connects to foreign link.
+Info: -e loopback top-level VHDL entity will have name loopback.unformatted_vhdl
+Info: -w loopback will write separate system and testbench VHDL files.
+Info: -s ghdl option selected: will generate testbench with VHPI link.
+Info: module loopback_daemon set as one of the ever-running top modules. 
+   NOTE: loopback_daemon cannot have any input/output arguments.
+vc2vhdl Error: did not find module loopback_daemon in the system
+vc2vhdl Error: did not find module loopback_daemon in the system
+Info: printing VHDL global package
+Info: printing top-level system VHDL file loopback.unformatted_vhdl
+Info: printing VHDL model
+Info: finished printing VHDL model
+vhdlFormat < loopback_global_package.unformatted_vhdl > loopback_global_package.vhdl
+vhdlFormat < loopback.unformatted_vhdl > loopack.vhdl
+vhdlFormat < loopback_test_bench.unformatted_vhdl > loopback_test_bench.vhdl
+rm *.unformatted_vhdl

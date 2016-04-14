@@ -1,0 +1,217 @@
+$pipe Riffa_to_CPU: $uint<64> $depth 1
+$pipe CPU_to_Riffa: $uint<64> $depth 1 
+
+$pipe temp0: $uint<64> $depth 1
+$pipe temp1: $uint<64> $depth 1
+$pipe temp2: $uint<64> $depth 1
+$pipe temp3: $uint<64> $depth 1
+$pipe temp4: $uint<64> $depth 1
+$pipe temp5: $uint<64> $depth 1
+$pipe temp6: $uint<64> $depth 1
+$pipe temp7: $uint<64> $depth 1
+$pipe temp8: $uint<64> $depth 1
+$pipe temp9: $uint<64> $depth 1
+$pipe temp10: $uint<64> $depth 1
+$pipe temp11: $uint<64> $depth 1
+$pipe temp12: $uint<64> $depth 1
+$pipe temp13: $uint<64> $depth 1
+$pipe temp14: $uint<64> $depth 1
+$pipe temp15: $uint<64> $depth 1
+$pipe temp16: $uint<64> $depth 1
+$pipe temp17: $uint<64> $depth 1
+$pipe temp18: $uint<64> $depth 1
+$pipe temp19: $uint<64> $depth 1
+$pipe temp20: $uint<64> $depth 1
+$pipe temp21: $uint<64> $depth 1
+$pipe temp22: $uint<64> $depth 1
+$pipe temp23: $uint<64> $depth 1
+$pipe temp24: $uint<64> $depth 1
+$pipe temp25: $uint<64> $depth 1
+$pipe temp26: $uint<64> $depth 1
+$pipe temp27: $uint<64> $depth 1
+$pipe temp28: $uint<64> $depth 1
+$pipe temp29: $uint<64> $depth 1
+$pipe temp30: $uint<64> $depth 1
+$pipe temp31: $uint<64> $depth 1
+$pipe temp32: $uint<64> $depth 1
+$pipe temp33: $uint<64> $depth 1
+$pipe temp34: $uint<64> $depth 1
+$pipe temp35: $uint<64> $depth 1
+$pipe temp36: $uint<64> $depth 1
+$pipe temp37: $uint<64> $depth 1
+$pipe temp38: $uint<64> $depth 1
+$pipe temp39: $uint<64> $depth 1
+$pipe temp40: $uint<64> $depth 1
+$pipe temp41: $uint<64> $depth 1
+$pipe temp42: $uint<64> $depth 1
+$pipe temp43: $uint<64> $depth 1
+$pipe temp44: $uint<64> $depth 1
+$pipe temp45: $uint<64> $depth 1
+$pipe temp46: $uint<64> $depth 1
+$pipe temp47: $uint<64> $depth 1
+$pipe temp48: $uint<64> $depth 1
+$pipe temp49: $uint<64> $depth 1
+$pipe temp50: $uint<64> $depth 1
+$pipe temp51: $uint<64> $depth 1
+$pipe temp52: $uint<64> $depth 1
+$pipe temp53: $uint<64> $depth 1
+$pipe temp54: $uint<64> $depth 1
+$pipe temp55: $uint<64> $depth 1
+$pipe temp56: $uint<64> $depth 1
+$pipe temp57: $uint<64> $depth 1
+$pipe temp58: $uint<64> $depth 1
+$pipe temp59: $uint<64> $depth 1
+$pipe temp60: $uint<64> $depth 1
+$pipe temp61: $uint<64> $depth 1
+$pipe temp62: $uint<64> $depth 1
+$pipe temp63: $uint<64> $depth 1
+$pipe temp64: $uint<64> $depth 1
+$pipe temp65: $uint<64> $depth 1
+$pipe temp66: $uint<64> $depth 1
+$pipe temp67: $uint<64> $depth 1
+$pipe temp68: $uint<64> $depth 1
+$pipe temp69: $uint<64> $depth 1
+$pipe temp70: $uint<64> $depth 1
+$pipe temp71: $uint<64> $depth 1
+$pipe temp72: $uint<64> $depth 1
+$pipe temp73: $uint<64> $depth 1
+$pipe temp74: $uint<64> $depth 1
+$pipe temp75: $uint<64> $depth 1
+$pipe temp76: $uint<64> $depth 1
+$pipe temp77: $uint<64> $depth 1
+$pipe temp78: $uint<64> $depth 1
+$pipe temp79: $uint<64> $depth 1
+$pipe temp80: $uint<64> $depth 1
+$pipe temp81: $uint<64> $depth 1
+$pipe temp82: $uint<64> $depth 1
+$pipe temp83: $uint<64> $depth 1
+$pipe temp84: $uint<64> $depth 1
+$pipe temp85: $uint<64> $depth 1
+$pipe temp86: $uint<64> $depth 1
+$pipe temp87: $uint<64> $depth 1
+$pipe temp88: $uint<64> $depth 1
+$pipe temp89: $uint<64> $depth 1
+$pipe temp90: $uint<64> $depth 1
+$pipe temp91: $uint<64> $depth 1
+$pipe temp92: $uint<64> $depth 1
+$pipe temp93: $uint<64> $depth 1
+$pipe temp94: $uint<64> $depth 1
+$pipe temp95: $uint<64> $depth 1
+$pipe temp96: $uint<64> $depth 1
+$pipe temp97: $uint<64> $depth 1
+$pipe temp98: $uint<64> $depth 1
+$pipe temp99: $uint<64> $depth 1
+
+$module [loopback_daemon] $in () $out () $is
+ {
+	$branchblock[lOoP] { 
+
+		$dopipeline $depth 1 $buffering 2  $fullrate
+		$merge $entry $loopback $endmerge 
+
+			X := Riffa_to_CPU
+			temp0 := (X*2)
+			temp1 := temp0
+			temp2 := temp1
+			temp3 := temp2
+			temp4 := temp3
+			temp5 := temp4
+			temp6 := temp5
+			temp7 := temp6
+			temp8 := temp7
+			temp9 := temp8
+			temp10 := temp9
+			temp11 := temp10
+			temp12 := temp11
+			temp13 := temp12
+			temp14 := temp13
+			temp15 := temp14
+			temp16 := temp15
+			temp17 := temp16
+			temp18 := temp17
+			temp19 := temp18
+			temp20 := temp19
+			temp21 := temp20
+			temp22 := temp21
+			temp23 := temp22
+			temp24 := temp23
+			temp25 := temp24
+			temp26 := temp25
+			temp27 := temp26
+			temp28 := temp27
+			temp29 := temp28
+			temp30 := temp29
+			temp31 := temp30
+			temp32 := temp31
+			temp33 := temp32
+			temp34 := temp33
+			temp35 := temp34
+			temp36 := temp35
+			temp37 := temp36
+			temp38 := temp37
+			temp39 := temp38
+			temp40 := temp39
+			temp41 := temp40
+			temp42 := temp41
+			temp43 := temp42
+			temp44 := temp43
+			temp45 := temp44
+			temp46 := temp45
+			temp47 := temp46
+			temp48 := temp47
+			temp49 := temp48
+			temp50 := temp49
+			temp51 := temp50
+			temp52 := temp51
+			temp53 := temp52
+			temp54 := temp53
+			temp55 := temp54
+			temp56 := temp55
+			temp57 := temp56
+			temp58 := temp57
+			temp59 := temp58
+			temp60 := temp59
+			temp61 := temp60
+			temp62 := temp61
+			temp63 := temp62
+			temp64 := temp63
+			temp65 := temp64
+			temp66 := temp65
+			temp67 := temp66
+			temp68 := temp67
+			temp69 := temp68
+			temp70 := temp69
+			temp71 := temp70
+			temp72 := temp71
+			temp73 := temp72
+			temp74 := temp73
+			temp75 := temp74
+			temp76 := temp75
+			temp77 := temp76
+			temp78 := temp77
+			temp79 := temp78
+			temp80 := temp79
+			temp81 := temp80
+			temp82 := temp81
+			temp83 := temp82
+			temp84 := temp83
+			temp85 := temp84
+			temp86 := temp85
+			temp87 := temp86
+			temp88 := temp87
+			temp89 := temp88
+			temp90 := temp89
+			temp91 := temp90
+			temp92 := temp91
+			temp93 := temp92
+			temp94 := temp93
+			temp95 := temp94
+			temp96 := temp95
+			temp97 := temp96
+			temp98 := temp97
+			temp99 := temp98
+			CPU_to_Riffa := temp99
+
+		$while 1
+	}
+}

@@ -1,0 +1,19 @@
+$pipe in_data: $uint<64> $depth 16
+$pipe out_data: $uint<64> $depth 16
+
+
+$module [loopback_daemon] $in () $out () $is
+{
+
+	$branchblock[lOoP] {
+
+		$dopipeline $depth 16 $buffering 2  $fullrate
+		$merge $entry $loopback $endmerge
+
+			X := in_data
+			out_data := (X+1)
+
+		$while 1
+	}
+
+}

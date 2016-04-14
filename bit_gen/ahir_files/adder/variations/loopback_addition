@@ -1,0 +1,19 @@
+$pipe Riffa_to_CPU: $uint<64> $depth 16
+$pipe CPU_to_Riffa: $uint<64> $depth 16
+
+
+$module [loopback_daemon] $in () $out () $is
+{
+
+	$branchblock[lOoP] {
+
+		$dopipeline $depth 16 $buffering 2  $fullrate
+		$merge $entry $loopback $endmerge
+
+			X := Riffa_to_CPU
+			CPU_to_Riffa := (X+1)
+
+		$while 1
+	}
+
+}

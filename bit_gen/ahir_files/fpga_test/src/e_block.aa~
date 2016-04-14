@@ -1,0 +1,62 @@
+$pipe in_data  : $uint<64> $depth 2
+//$noblock $pipe key_in  : $uint<64> $depth 2
+$pipe out_data : $uint<64> $depth 2
+ 
+$module [e_block_daemon] $in() $out () $is
+{	
+	
+	//$pipe key_store: $uint<128> $depth 10
+	$constant RConstant_1 : $uint<8> := _h01
+	$constant NOT_LAST : $uint<1> := 0
+	$constant LAST : $uint<1> := 1
+	$constant K0 : $uint<128> := _h00000000000000000000000000000000
+	$constant K1 : $uint<128> := _h62636363626363636263636362636363
+	$constant K2 : $uint<128> := _h9b9898c9f9fbfbaa9b9898c9f9fbfbaa
+	$constant K3 : $uint<128> := _h90973450696ccffaf2f457330b0fac99
+	$constant K4 : $uint<128> := _hee06da7b876a1581759e42b27e91ee2b
+	$constant K5 : $uint<128> := _h7f2e2b88f8443e098dda7cbbf34b9290
+	$constant K6 : $uint<128> := _hec614b851425758c99ff09376ab49ba7
+	$constant K7 : $uint<128> := _h217517873550620bacaf6b3cc61bf09b
+	$constant K8 : $uint<128> := _h0ef903333ba9613897060a04511dfa9f
+	$constant K9 : $uint<128> := _hb1d4d8e28a7db9da1d7bb3de4c664941
+	$constant K10 : $uint<128> := _hb4ef5bcb3e92e21123e951cf6f8f188e
+	
+	
+	$branchblock[MAIN]  {
+	
+	$dopipeline  $depth 10 $buffering 2 
+	$merge $entry $loopback $endmerge
+	
+		Ina := in_data
+		Inb := in_data
+		//Inc := in_data
+		//Ind := in_data
+		
+		$volatile in128 := ($concat Ina Inb)
+
+		$volatile round_S0 := (in128 ^ K0)
+		$call enc_round (round_S0 K1 NOT_LAST) (round_S1)
+		$call enc_round (round_S1 K2 NOT_LAST) (round_S2)
+		$call enc_round (round_S2 K3 NOT_LAST) (round_S3)
+		$call enc_round (round_S3 K4 NOT_LAST) (round_S4)
+		$call enc_round (round_S4 K5 NOT_LAST) (round_S5)
+		$call enc_round (round_S5 K6 NOT_LAST) (round_S6)
+		$call enc_round (round_S6 K7 NOT_LAST) (round_S7)
+		$call enc_round (round_S7 K8 NOT_LAST) (round_S8)
+		$call enc_round (round_S8 K9 NOT_LAST) (round_S9)
+		$call enc_round (round_S9 K10 LAST) (round_S10)
+		//$call enc_round_last (round_S9 K10) (round_S10)
+
+		$volatile $split (round_S10 64 64)  (Ya Yb)
+		
+		out_data := Ya
+		out_data := Yb
+		//out_data := Yc
+		//out_data := Yd
+
+               
+	$while 1
+	
+    }
+}
+
