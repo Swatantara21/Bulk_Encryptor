@@ -13,11 +13,11 @@
 //#include "vhdlCStubs.h"
 //#endif
 
-uint32_t numWords;
-uint32_t result[4];
-uint32_t sent_values[4];
+int numWords;
+uint64_t result[4];
+uint64_t sent_values[4];
 fpga_t * fpga;
-uint32_t sent, recvd, chnl, id;
+int sent, recvd, chnl, id;
 #define NUM_TESTS 100
 void Exit(int sig)
 {
@@ -29,29 +29,26 @@ void Exit(int sig)
 void Sender()
 {
 	int idx,jdx,k;
-	k=2;
-	sent_values[2] = 0x80000000;
-	sent_values[0] = 0x00ffffff;
-	sent_values[1] = 0x00ffffff;
-	sent_values[3] = 0x00fffff0;
-	for(idx = 0; idx < numWords; idx++)
-	{	
-		sent = fpga_send(fpga, chnl, sent_values, 4, 0, 1, 25000);
-		printf("\nsend_status = %d -- %d ,    input = %8x %8x %8x %8x",sent, idx,sent_values[0],sent_values[1],sent_values[2],sent_values[3]);
-		if(sent_values[k]==0xffffffff){
-			k++;
-			sent_values[k]= 0x80000000;
-		}
-		else
-			sent_values[k] = sent_values[k]|(sent_values[k]/2);
-			
-			
+		k=0;
+		sent_values[0] = 0x8000000000000000;
+		sent_values[1] = 0x0000000000000000;
+	
+		
+	
+		for(idx = 0; idx < numWords; idx++)
+		{	
+			sent = fpga_send(fpga, chnl, sent_values, 4, 0, 1, 25000);
+			fprintf(stdout,"\nsend_status = %d -- %d ,    input =%16llx %16llx",sent, idx,sent_values[0],sent_values[1]);
 
-		///////////////////////
-		recvd = fpga_recv(fpga, chnl, result, 4, 25000);			
-			fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %8x %8x %8x %8x",recvd,idx, result[0],result[1],result[2],result[3]);
-	///////////////////////////////////////////////////
-	}
+			if(sent_values[k]==0xffffffffffffffff){
+				k++;
+				sent_values[k]= 0x8000000000000000;
+			}
+			else
+				sent_values[k] = sent_values[k]|(sent_values[k]/2);
+			
+			
+		}
 }
 
 DEFINE_THREAD(Sender)
@@ -140,47 +137,23 @@ int main(int argc, char** argv) {
 		signal(SIGINT,  Exit);
 	  	signal(SIGTERM, Exit);
 
-		//PTHREAD_DECL(Sender);
-		//PTHREAD_CREATE(Sender);
+		PTHREAD_DECL(Sender);
+		PTHREAD_CREATE(Sender);
 	
 
 		uint8_t idx, jdx,k;
 
-	k=2;
-	sent_values[2] = 0x80000000;
-	sent_values[0] = 0x00ffffff;
-	sent_values[1] = 0x00ffffff;
-	sent_values[3] = 0x00fffff0;
+	
 	for(idx = 0; idx < numWords; idx++)
 	{	
-		sent = fpga_send(fpga, chnl, sent_values, 4, 0, 1, 25000);
-		printf("\nsend_status = %d -- %d ,    input = %8x %8x %8x %8x",sent, idx,sent_values[0],sent_values[1],sent_values[2],sent_values[3]);
-		if(sent_values[k]==0xffffffff){
-			k++;
-			sent_values[k]= 0x80000000;
-		}
-		else
-			sent_values[k] = sent_values[k]|(sent_values[k]/2);
-			
-			
-
-		///////////////////////
-		recvd = fpga_recv(fpga, chnl, result, 4, 25000);			
-			fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %8x %8x %8x %8x",recvd,idx, result[0],result[1],result[2],result[3]);
-	///////////////////////////////////////////////////
+		recvd = fpga_recv(fpga, chnl, result, 4, 25000);
+			if (recvd < 4) fprintf(stderr,"\nERROR:-------------------------");
+			fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %16llx %16llx",recvd,idx, result[0],result[1]);
 	}
 	
-		/*for(idx = 0; idx < numWords; idx++)
-		{
-			
-			//read_uint32_n("out_data",result,4);
-			recvd = fpga_recv(fpga, chnl, result, 4, 25000);			
-			fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %8x %8x %8x %8x",recvd,idx, result[0],result[1],result[2],result[3]);
-			if (recvd <= 0) idx--;
-		}
-	*/
+		
 	
-		//PTHREAD_CANCEL(Sender);
+		PTHREAD_CANCEL(Sender);
 				
 		// Done with device
 	        fpga_close(fpga);

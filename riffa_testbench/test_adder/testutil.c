@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 		int idx,jdx,k;
 		k=0;
 		sent_values[0] = 0x8000000000000000;
-		sent_values[1] = 0x800000000000f000;
+		sent_values[1] = 0x0000000000000000;
 	
 		
 	
