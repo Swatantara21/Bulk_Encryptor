@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 	
 		for(idx = 0; idx < numWords; idx++)
 		{	
-			sent = fpga_send(fpga, chnl, sent_values, 4, 0, 1, 25000);
+			sent = fpga_send(fpga, chnl, sent_values, 4, 0, 1, 10000);
 			fprintf(stdout,"\nsend_status = %d -- %d ,    input =%16llx %16llx",sent, idx,sent_values[0],sent_values[1]);
 
 			if(sent_values[k]==0xffffffffffffffff){
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 			else
 				sent_values[k] = sent_values[k]|(sent_values[k]/2);
 			
-			recvd = fpga_recv(fpga, chnl, result, 4, 25000);
+			recvd = fpga_recv(fpga, chnl, result, 4, 10000);
 			if (recvd < 4) fprintf(stderr,"\nERROR:-------------------------");
 			//fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %16llx %16llx",recvd,idx, result[0],result[1]);
 			fprintf(stdout,"\n%16llx%16llx",result[0],result[1]);

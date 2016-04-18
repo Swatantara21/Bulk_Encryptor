@@ -8,8 +8,8 @@
 //#include "vhdlCStubs.h"
 //#endif
 
-uint64_t result[32];
-uint64_t sent_values[32];
+uint64_t result[8];
+uint64_t sent_values[8];
 //uint32_t numWords;
 //fpga_t * fpga;
 //uint32_t sent, recvd, chnl, id;
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
 		GET_TIME_VAL(1);
 		if (recvd < 4) fprintf(stderr,"\nERROR:-------------------------");
 		//fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %16llx %16llx",recvd,idx, result[0],result[1]);
-		fprintf(stdout,"\n%16llx%16llx",result[0],result[1]);
+		//fprintf(stdout,"\n%16llx%16llx",result[0],result[1]);
 
 		printf("\ntime taken (latency): %f ms\n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)));
 				
@@ -125,8 +125,8 @@ int main(int argc, char** argv) {
 		id = atoi(argv[2]);
 		chnl = atoi(argv[3]);
 		numWords = atoi(argv[4]);
-		numLoops = numWords/16;
-		remWords = numWords%16;
+		numLoops = numWords/2;
+		remWords = numWords%2;
 		// Get the device with id
 		fpga = fpga_open(id);
 		if (fpga == NULL) {
@@ -138,22 +138,22 @@ int main(int argc, char** argv) {
 		
 		k=0;
 		sent_values[0] = 0x8000000000000000;
-		sent_values[1] = 0x0000000000000000;
-		for (idx =0; idx<16; idx++){
+		sent_values[1] = 0x0000000000000000;;
+		for (idx =0; idx<2; idx++){
 			sent_values[2*idx] =  0x8000000000000000;
 			sent_values[2*idx +1] =  0x0000000000000000;
 		}
 		
 		
 		GET_TIME_VAL(0);
-		for(idx = 0; idx < numWords; idx++)
+		for(idx = 0; idx < numLoops; idx++)
 		{	
 			sent = fpga_send(fpga, chnl, sent_values, 8, 0, 1, 25000);
-			for (idx =0; idx<2; idx++)
-				fprintf(stdout,"\n%16llx%16llx",sent_values[idx*2],sent_values[idx*2 +1]);
+			//for (idx =0; idx<2; idx++)
+			//	fprintf(stdout,"\n%16llx%16llx",sent_values[idx*2],sent_values[idx*2 +1]);
 			recvd = fpga_recv(fpga, chnl, result, 8, 25000);
-			for (idx =0; idx<2; idx++)
-				fprintf(stdout,"\n%16llx%16llx",result[idx*2],result[idx*2 +1]);
+			//for (idx =0; idx<2; idx++)
+			//	fprintf(stdout,"\n%16llx%16llx",result[idx*2],result[idx*2 +1]);
 			
 		}
 			//sent = fpga_send(fpga, chnl, sent_values, remWords*4, 0, 1, 25000);

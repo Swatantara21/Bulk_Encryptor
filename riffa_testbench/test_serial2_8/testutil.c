@@ -108,6 +108,7 @@ int main(int argc, char** argv) {
 		{	
 			sent = fpga_send(fpga, chnl, sent_values, 8, 0, 1, 25000);
 			fprintf(stdout,"\nsend_status = %d -- %d ,    input =%16llx %16llx",sent, idx,sent_values[0],sent_values[1]);
+			fprintf(stdout,"\nsend_status = %d -- %d ,    input =%16llx %16llx",sent, idx,sent_values[2],sent_values[3]);
 
 			if(sent_values[k]==0xffffffffffffffff){
 				k++;
