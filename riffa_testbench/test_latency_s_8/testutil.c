@@ -78,7 +78,9 @@ int main(int argc, char** argv) {
 		fpga_close(fpga);
 	}
 	else if (option == 2) { // Send data, receive data
+		printf("OPTION 2 is NOT WORKING when recieving 8 words at a time");
 		if (argc < 4) {
+			printf("This option is used to get latency (numWords = 1)\n", argv[0], option);
 			printf("Usage: %s %d <fpga id> <chnl>\n", argv[0], option);
 			return -1;
 		}
@@ -164,7 +166,7 @@ int main(int argc, char** argv) {
 		//	fprintf(stdout,"\n%16llx%16llx",result[idx*2],result[idx*2 +1]);
 		
 		printf("\ntime taken : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
-		printf("ayg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
+		printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
 				
 		// Done with device
 	        fpga_close(fpga);

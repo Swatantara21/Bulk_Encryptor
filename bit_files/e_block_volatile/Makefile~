@@ -1,0 +1,5 @@
+all: run
+run: run.sh
+	./run.sh
+clean:
+	rm -fr v* fsm* results *.bit
