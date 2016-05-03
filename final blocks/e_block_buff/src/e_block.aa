@@ -1,11 +1,12 @@
-$pipe in_data  : $uint<32> $depth 2
-//$noblock $pipe key_in  : $uint<32> $depth 2
-$pipe out_data : $uint<32> $depth 2
- 
+$pipe in_data  : $uint<64> $depth 2
+//$noblock $pipe key_in  : $uint<64> $depth 2
+$pipe out_data : $uint<64> $depth 2
+$pipe in_buf : $uint<128> $depth 256
+$pipe out_buf : $uint<128> $depth 256
+
 $module [e_block_daemon] $in() $out () $is
 {	
 	
-	//$pipe key_store: $uint<128> $depth 10
 	$constant RConstant_1 : $uint<8> := _h01
 	$constant NOT_LAST : $uint<1> := 0
 	$constant LAST : $uint<1> := 1
@@ -21,18 +22,13 @@ $module [e_block_daemon] $in() $out () $is
 	$constant K9 : $uint<128> := _hb1d4d8e28a7db9da1d7bb3de4c664941
 	$constant K10 : $uint<128> := _hb4ef5bcb3e92e21123e951cf6f8f188e
 	
-	
+		
 	$branchblock[MAIN]  {
-	
+
 	$dopipeline  $depth 10 $buffering 2 
 	$merge $entry $loopback $endmerge
-	
-		Ina := in_data
-		Inb := in_data
-		Inc := in_data
-		Ind := in_data
-		
-		$volatile in128 := ($concat Ina Inb Inc Ind)
+
+		$volatile in128 := in_buf
 
 		$volatile round_S0 := (in128 ^ K0)
 		$call enc_round (round_S0 K1 NOT_LAST) (round_S1)
@@ -45,18 +41,32 @@ $module [e_block_daemon] $in() $out () $is
 		$call enc_round (round_S7 K8 NOT_LAST) (round_S8)
 		$call enc_round (round_S8 K9 NOT_LAST) (round_S9)
 		$call enc_round (round_S9 K10 LAST) (round_S10)
-		//$call enc_round_last (round_S9 K10) (round_S10)
-
-		$volatile $split (round_S10 32 32 32 32)  (Ya Yb Yc Yd)
 		
-		out_data := Ya
-		out_data := Yb
-		out_data := Yc
-		out_data := Yd
-
-               
+		out_buf := round_S10
+	       
 	$while 1
-	
-    }
+
+    	}
+	 
 }
 
+$module [c_block_daemon_in] $in() $out () $is
+{	
+	
+	Ina := in_data
+	Inb := in_data
+
+	in_buf := ($concat Ina Inb)
+	
+}
+$module [c_block_daemon_out] $in() $out () $is
+{	
+	 		
+	Z := out_buf
+	$volatile $split (Z 64 64)  (Ya Yb)
+	out_data := Ya
+	out_data := Yb
+		
+		
+
+}

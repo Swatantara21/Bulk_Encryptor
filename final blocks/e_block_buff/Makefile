@@ -12,7 +12,7 @@ AA2VHDLSIM: aa2vc  vc2vhdl  vhdlsim
 TOVHDL:TOVC vc2vhdl
 
 
-TOPMODULES=-T e_block_daemon
+TOPMODULES=-T e_block_daemon -T c_block_daemon_in -T c_block_daemon_out
 
 
 
