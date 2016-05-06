@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 	{
 	
 		read_uint64_n("out_data",result,2);
-		fprintf(stdout,"\n%16llx %16llx", result[0],result[1]);
+		fprintf(stdout,"\n%16llx%16llx", result[0],result[1]);
 	}
 	
 	

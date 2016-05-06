@@ -1,8 +1,8 @@
 $pipe in_data  : $uint<64> $depth 2
 //$noblock $pipe key_in  : $uint<64> $depth 2
 $pipe out_data : $uint<64> $depth 2
-$pipe in_buf : $uint<128> $depth 256
-$pipe out_buf : $uint<128> $depth 256
+$pipe in_buf : $uint<128> $depth 512
+$pipe out_buf : $uint<128> $depth 512
 
 $module [e_block_daemon] $in() $out () $is
 {	
