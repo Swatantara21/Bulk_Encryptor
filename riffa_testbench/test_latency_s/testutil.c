@@ -8,8 +8,8 @@
 //#include "vhdlCStubs.h"
 //#endif
 
-uint64_t result[256];
-uint64_t sent_values[256];
+uint64_t result[1024];
+uint64_t sent_values[1024];
 //uint32_t numWords;
 //fpga_t * fpga;
 //uint32_t sent, recvd, chnl, id;
@@ -114,25 +114,29 @@ int main(int argc, char** argv) {
 			else
 				sent_values[idx+k] = sent_values[idx+k]|(sent_values[idx+k]/2);
 		}
+		for (idx =0; idx<1024; idx++)
+			sent_values[idx+256]=sent_values[idx]; 
 		
 		//for (idx =0; idx<chsize/2; idx=idx+2)
 		//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);
 		
 		//printf("loops = %d",numLoops);
 		
-			
+			GET_TIME_VAL(0);
 			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
 			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
+			GET_TIME_VAL(1);
+			
 			for (k =0; k<ch_size/2; k=k+2)
 				printf("\n%16llx%16llx",result[k],result[k+1]);
 			
 		
 			
-		GET_TIME_VAL(1);
+		
 		//for (idx =0; idx<256; idx=idx+2)
 		//	printf("\n%16llx%16llx",result[idx],result[idx+1]);
 		
-		//printf("\ntime taken : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
+		printf("\ntime taken (latency) : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
 		//printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
 		// Done with device
 	        fpga_close(fpga);
@@ -176,6 +180,8 @@ int main(int argc, char** argv) {
 			else
 				sent_values[idx+k] = sent_values[idx+k]|(sent_values[idx+k]/2);
 		}
+		for (idx =0; idx<1024; idx++)
+			sent_values[idx+256]=sent_values[idx]; 
 		
 		//for (idx =0; idx<128; idx=idx+2)
 		//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);
@@ -196,8 +202,8 @@ int main(int argc, char** argv) {
 		//for (idx =0; idx<256; idx=idx+2)
 		//	printf("\n%16llx%16llx",result[idx],result[idx+1]);
 		
-		printf("\ntime taken : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
-		printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
+		printf("\ntime taken : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numInputs);
+		printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numInputs);
 		// Done with device
 	        fpga_close(fpga);
 	}
