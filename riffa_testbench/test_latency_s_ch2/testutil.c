@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <pthread.h>
+#include <pthreadUtils.h>
 
 #include "timer.h"
 #include "riffa.h"
@@ -10,11 +12,26 @@
 
 uint64_t result[1024];
 uint64_t sent_values[1024];
+uint64_t cmd_values[1024];
 //uint32_t numWords;
 //fpga_t * fpga;
 //uint32_t sent, recvd, chnl, id;
 #define NUM_TESTS 100
 
+void Exit(int sig)
+{
+	fprintf(stderr, "## Break! ##\n");
+	exit(0);
+}
+void RecvStatus(){
+	uint64_t status;
+	while (1){
+	status = fpga_recv(fpga, 1, result, ch_size, 25000);
+	fprintf(stdout,"\nstatus: %16lx\n", status);
+	}
+}
+
+DEFINE_THREAD(RecvStatus)
 
 int main(int argc, char** argv) {
 	fpga_t * fpga;
@@ -33,7 +50,6 @@ int main(int argc, char** argv) {
 	int err;
 	int idx,jdx,k;
 	GET_TIME_INIT(3);
-
 	if (argc < 2) {
 		printf("Usage: %s <option>\n", argv[0]);
 		return -1;
@@ -83,7 +99,12 @@ int main(int argc, char** argv) {
 			printf("Usage: %s %d <fpga id> <chnl> <channel size in channel tester in bytes> <num words to transfer>\n", argv[0], option);
 			return -1;
 		}
+		signal(SIGINT,  Exit);
+	  	signal(SIGTERM, Exit);
 
+		PTHREAD_DECL(RecvStatus);
+		PTHREAD_CREATE(RecvStatus);
+	
 		//size_t maxWords, minWords;
 		id = atoi(argv[2]);
 		chnl = atoi(argv[3]);
@@ -99,7 +120,10 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 
-		
+		cmd_values[0] = 0x0800000000000400;
+		cmd_values[1] = 0x8d2e60365f17c7df;
+		cmd_values[2] = 0x1040d7501b4a7b5a;
+	
 		
 		k=0;
 		sent_values[0] = 0x8000000000000000;
@@ -116,13 +140,18 @@ int main(int argc, char** argv) {
 		}
 		for (idx =0; idx<1024; idx++)
 			sent_values[idx+256]=sent_values[idx]; 
-		
+			
 		//for (idx =0; idx<chsize/2; idx=idx+2)
 		//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);
 		
 		//printf("loops = %d",numLoops);
 		
 			GET_TIME_VAL(0);
+			sent = fpga_send(fpga, 1, cmd_values, 3, 0, 1, 25000);
+			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
+			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
+			cmd_values[0] = 0x0000000000000400;
+			sent = fpga_send(fpga, 1, cmd_values, 1, 0, 1, 25000);
 			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
 			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
 			GET_TIME_VAL(1);
@@ -135,6 +164,7 @@ int main(int argc, char** argv) {
 		
 		//for (idx =0; idx<256; idx=idx+2)
 		//	printf("\n%16llx%16llx",result[idx],result[idx+1]);
+		PTHREAD_CANCEL(RecvStatus);
 		
 		printf("\ntime taken (latency) : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
 		//printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
