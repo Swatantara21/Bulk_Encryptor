@@ -3,11 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
-<<<<<<< HEAD
+
 #include "pthreadUtils.h"
-=======
-#include <pthreadUtils.h>
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 
 #include "timer.h"
 #include "riffa.h"
@@ -18,17 +15,16 @@
 #define DATA_CH_SIZE 4
 
 
-<<<<<<< HEAD
+
 uint64_t status;
 uint64_t result[DATA_CH_SIZE];
 uint64_t sent_values[DATA_CH_SIZE];
 uint64_t cmd_values[1];
 uint64_t key_values[2];
-=======
-uint64_t result[1024];
+
 uint64_t sent_values[1024];
 uint64_t cmd_values[1024];
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
+
 //uint32_t numWords;
 fpga_t * fpga;
 //uint32_t sent, recvd, chnl, id;
@@ -116,16 +112,7 @@ int main(int argc, char** argv) {
 			printf("KAT(Known Answer Test)\nUsage: %s %d <fpga id> <data channel size (bytes) in channel tester> \n", argv[0], option);
 			return -1;
 		}
-<<<<<<< HEAD
-		
-=======
-		signal(SIGINT,  Exit);
-	  	signal(SIGTERM, Exit);
 
-		PTHREAD_DECL(RecvStatus);
-		PTHREAD_CREATE(RecvStatus);
-	
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		//size_t maxWords, minWords;
 		id = atoi(argv[2]);
 		ch_size = atoi(argv[3]);
@@ -138,17 +125,12 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 
-<<<<<<< HEAD
+
 		cmd_values[0] = 0x0800000000000000;
 		cmd_values[0] = cmd_values[0] + ch_size/4;
 		key_values[0] = 0x0000000000000000;
 		key_values[1] = 0x0000000000000000;
-=======
-		cmd_values[0] = 0x0800000000000400;
-		cmd_values[1] = 0x8d2e60365f17c7df;
-		cmd_values[2] = 0x1040d7501b4a7b5a;
-	
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
+
 		
 		k=0;
 		sent_values[0] = 0x8000000000000000;
@@ -170,7 +152,6 @@ int main(int argc, char** argv) {
 		//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);
 		
 		
-<<<<<<< HEAD
 		GET_TIME_VAL(0);
 		sent = fpga_send(fpga, 1, cmd_values, 2, 0, 1, 25000);
 		printf("\ncmd sent status = %d",sent);
@@ -179,28 +160,12 @@ int main(int argc, char** argv) {
 
 		sent = fpga_send(fpga, 1, key_values, 4, 0, 1, 25000);
 		printf("\nkey sent status = %d",sent);
-=======
-			GET_TIME_VAL(0);
-			sent = fpga_send(fpga, 1, cmd_values, 3, 0, 1, 25000);
-			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
-			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
-			cmd_values[0] = 0x0000000000000400;
-			sent = fpga_send(fpga, 1, cmd_values, 1, 0, 1, 25000);
-			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
-			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
-			GET_TIME_VAL(1);
-			
-			for (k =0; k<ch_size/2; k=k+2)
-				printf("\n%16llx%16llx",result[k],result[k+1]);
-			
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		
 		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
 		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
 		//recvd = fpga_recv(fpga, 1, &status, 2, 25000);
 		//fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
 		
-<<<<<<< HEAD
 		sent = fpga_send(fpga, 0, sent_values, ch_size, 0, 1, 25000);
 		printf("\ndata sent status = %d",sent);
 		recvd = fpga_recv(fpga, 0, result, ch_size, 25000);
@@ -234,11 +199,6 @@ int main(int argc, char** argv) {
 
 		sent = fpga_send(fpga, 1, key_values, 4, 0, 1, 25000);
 		printf("\nkey sent status = %d",sent);
-=======
-		//for (idx =0; idx<256; idx=idx+2)
-		//	printf("\n%16llx%16llx",result[idx],result[idx+1]);
-		PTHREAD_CANCEL(RecvStatus);
->>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		
 		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
 		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
