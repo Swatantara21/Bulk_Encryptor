@@ -1,22 +1,38 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
+<<<<<<< HEAD
+#include "pthreadUtils.h"
+=======
 #include <pthreadUtils.h>
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 
 #include "timer.h"
 #include "riffa.h"
 //#ifndef SW
 //#include "vhdlCStubs.h"
 //#endif
+#define NUM_TESTS 100
+#define DATA_CH_SIZE 4
 
+
+<<<<<<< HEAD
+uint64_t status;
+uint64_t result[DATA_CH_SIZE];
+uint64_t sent_values[DATA_CH_SIZE];
+uint64_t cmd_values[1];
+uint64_t key_values[2];
+=======
 uint64_t result[1024];
 uint64_t sent_values[1024];
 uint64_t cmd_values[1024];
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 //uint32_t numWords;
-//fpga_t * fpga;
+fpga_t * fpga;
 //uint32_t sent, recvd, chnl, id;
-#define NUM_TESTS 100
+
 
 void Exit(int sig)
 {
@@ -34,10 +50,10 @@ void RecvStatus(){
 DEFINE_THREAD(RecvStatus)
 
 int main(int argc, char** argv) {
-	fpga_t * fpga;
+	//fpga_t * fpga;
 	fpga_info_list info;
 	int option;
-	int i;
+	int i,j;
 	int id;
 	int chnl;
 	int ch_size;
@@ -64,7 +80,7 @@ int main(int argc, char** argv) {
 			printf("Error populating fpga_info_list\n");
 			return -1;
 		}
-		printf("Number of devices: %d\n", info.num_fpgas);
+		printf("fpga info:\nNumber of devices: %d\n", info.num_fpgas);
 		for (i = 0; i < info.num_fpgas; i++) {
 			printf("%d: id:%d\n", i, info.id[i]);
 			printf("%d: num_chnls:%d\n", i, info.num_chnls[i]);
@@ -72,6 +88,7 @@ int main(int argc, char** argv) {
 			printf("%d: vendor id:%04X\n", i, info.vendor_id[i]);
 			printf("%d: device id:%04X\n", i, info.device_id[i]);
 		}
+		printf("options: \n1: fpga reset\n2: KAT \n3: MonteCarlo Test (for data ch size=4)\n");
 	}
 	else if (option == 1) { // Reset FPGA
 		if (argc < 3) {
@@ -95,23 +112,24 @@ int main(int argc, char** argv) {
 		fpga_close(fpga);
 	}
 	else if (option == 2) { // Send data, receive data
-		if (argc < 5) {
-			printf("Usage: %s %d <fpga id> <chnl> <channel size in channel tester in bytes> <num words to transfer>\n", argv[0], option);
+		if (argc < 4) {
+			printf("KAT(Known Answer Test)\nUsage: %s %d <fpga id> <data channel size (bytes) in channel tester> \n", argv[0], option);
 			return -1;
 		}
+<<<<<<< HEAD
+		
+=======
 		signal(SIGINT,  Exit);
 	  	signal(SIGTERM, Exit);
 
 		PTHREAD_DECL(RecvStatus);
 		PTHREAD_CREATE(RecvStatus);
 	
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		//size_t maxWords, minWords;
 		id = atoi(argv[2]);
-		chnl = atoi(argv[3]);
-		//numWords = atoi(argv[5]);
-		ch_size = atoi(argv[4]);
+		ch_size = atoi(argv[3]);
 		numLoops = 1;
-		//remWords = numWords%ch_size;
 		// Get the device with id
 		fpga = fpga_open(id);
 		//uint64_t result[ch_size];
@@ -120,10 +138,17 @@ int main(int argc, char** argv) {
 			return -1;
 		}
 
+<<<<<<< HEAD
+		cmd_values[0] = 0x0800000000000000;
+		cmd_values[0] = cmd_values[0] + ch_size/4;
+		key_values[0] = 0x0000000000000000;
+		key_values[1] = 0x0000000000000000;
+=======
 		cmd_values[0] = 0x0800000000000400;
 		cmd_values[1] = 0x8d2e60365f17c7df;
 		cmd_values[2] = 0x1040d7501b4a7b5a;
 	
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		
 		k=0;
 		sent_values[0] = 0x8000000000000000;
@@ -138,14 +163,23 @@ int main(int argc, char** argv) {
 			else
 				sent_values[idx+k] = sent_values[idx+k]|(sent_values[idx+k]/2);
 		}
-		for (idx =0; idx<1024; idx++)
+		for (idx =0; idx<DATA_CH_SIZE; idx++)
 			sent_values[idx+256]=sent_values[idx]; 
 			
 		//for (idx =0; idx<chsize/2; idx=idx+2)
 		//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);
 		
-		//printf("loops = %d",numLoops);
 		
+<<<<<<< HEAD
+		GET_TIME_VAL(0);
+		sent = fpga_send(fpga, 1, cmd_values, 2, 0, 1, 25000);
+		printf("\ncmd sent status = %d",sent);
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+
+		sent = fpga_send(fpga, 1, key_values, 4, 0, 1, 25000);
+		printf("\nkey sent status = %d",sent);
+=======
 			GET_TIME_VAL(0);
 			sent = fpga_send(fpga, 1, cmd_values, 3, 0, 1, 25000);
 			sent = fpga_send(fpga, chnl, sent_values, ch_size, 0, 1, 25000);
@@ -159,19 +193,140 @@ int main(int argc, char** argv) {
 			for (k =0; k<ch_size/2; k=k+2)
 				printf("\n%16llx%16llx",result[k],result[k+1]);
 			
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		
-			
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+		//recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		//fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
 		
+<<<<<<< HEAD
+		sent = fpga_send(fpga, 0, sent_values, ch_size, 0, 1, 25000);
+		printf("\ndata sent status = %d",sent);
+		recvd = fpga_recv(fpga, 0, result, ch_size, 25000);
+		printf("\ndata recv status = %d",sent);
+		
+		//for (k =0; k<ch_size/2; k=k+2)
+		//	printf("\nres: %16llx%16llx",result[k],result[k+1]);
+		
+		cmd_values[0] = ch_size/4;
+		sent = fpga_send(fpga, 1, cmd_values, 2, 0, 1, 25000);
+		printf("\ncmd sent status = %d",sent);
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+		sent = fpga_send(fpga, 0, sent_values, ch_size, 0, 1, 25000);
+		printf("\ndata sent status = %d",sent);
+		
+		recvd = fpga_recv(fpga, 0, result, ch_size, 25000);
+		printf("\ndata recv status = %d",sent);
+		GET_TIME_VAL(1);
+		
+		//for (k =0; k<ch_size/2; k=k+2)
+		//	printf("\nres: %16llx%16llx",result[k],result[k+1]);
+		
+		cmd_values[0] = 0x0800000000000000 + ch_size/4;
+		sent = fpga_send(fpga, 1, cmd_values, 2, 0, 1, 25000);
+		printf("\ncmd sent status = %d",sent);
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+
+		sent = fpga_send(fpga, 1, key_values, 4, 0, 1, 25000);
+		printf("\nkey sent status = %d",sent);
+=======
 		//for (idx =0; idx<256; idx=idx+2)
 		//	printf("\n%16llx%16llx",result[idx],result[idx+1]);
 		PTHREAD_CANCEL(RecvStatus);
+>>>>>>> 3e3ca97b25d7c2f75743463566ba2fcdd81ab924
 		
-		printf("\ntime taken (latency) : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),numWords);
-		//printf("avg time taken by 1 set of data : %f ms\n",((TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)))/numWords);
+		recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+		//recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+		//fprintf(stdout,"\nrec_status: %d status: %16lx\n", recvd, status);
+		
+		sent = fpga_send(fpga, 0, sent_values, ch_size, 0, 1, 25000);
+		printf("\ndata sent status = %d",sent);
+		recvd = fpga_recv(fpga, 0, result, ch_size, 25000);
+		printf("\ndata recv status = %d",sent);
+		
+		for (k =0; k<ch_size/2; k=k+2)
+			printf("\n%16llx%16llx",result[k],result[k+1]);
+	
+				
+		printf("\ntime taken (latency) : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),ch_size/4);
 		// Done with device
 	        fpga_close(fpga);
 	}
 	else if (option == 3) { // Send data, receive data
+		if (argc < 4) {
+			printf("Monte Carlo Test for data channel size 4\nUsage: %s %d <fpga id> <data channel size (bytes) in channel tester> \n", argv[0], option);
+			return -1;
+		}
+		
+		//size_t maxWords, minWords;
+		id = atoi(argv[2]);
+		ch_size = atoi(argv[3]);
+		numLoops = 1;
+		// Get the device with id
+		fpga = fpga_open(id);
+		if (fpga == NULL) {
+			printf("Could not get FPGA %d\n", id);
+			return -1;
+		}
+
+		cmd_values[0] = 0x0800000000000000 + 0x03e8;
+		key_values[0] = 0x8d2e60365f17c7df;
+		key_values[1] = 0x1040d7501b4a7b5a;
+		
+		k=0;
+		sent_values[0] = 0x59b5088e6dadc3ad;
+		sent_values[1] = 0x5f27a460872d5929;
+	
+		GET_TIME_VAL(0);
+		for (i=0; i<100; i++){
+			fprintf(stderr,"cmd: %16llx key:%16llx %16llx\n",cmd_values[0],key_values[0],key_values[1]);
+			fprintf(stdout,"\nPT: %d: %16llx %16llx",idx,sent_values[0],sent_values[1]);	
+			//for (idx =0; idx<chsize/2; idx=idx+2)
+			//	printf("\n%d: %16llx%16llx",idx,sent_values[idx],sent_values[idx+1]);	
+			
+			//send command
+			sent = fpga_send(fpga, 1, cmd_values, 2, 0, 1, 25000);
+			//printf("\ncmd sent status = %d",sent);
+			recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+			//fprintf(stdout,"\nrec_status: %d status: %16llx\n", recvd, status);
+
+			sent = fpga_send(fpga, 1, key_values, 4, 0, 1, 25000);
+			//printf("\nkey sent status = %d",sent);
+		
+			recvd = fpga_recv(fpga, 1, &status, 2, 25000);
+			//fprintf(stdout,"\nrec_status: %d status: %16llx\n", recvd, status);
+			for (j=0; j<1000; j++){
+				sent = fpga_send(fpga, 0, sent_values, 4, 0, 1, 25000);
+				//printf("\ndata sent status = %d",sent);
+				recvd = fpga_recv(fpga, 0, result, 4, 25000);
+				//printf("\ndata recv status = %d",sent);
+				sent_values[0] = result[0];
+				sent_values[1] = result[1];
+			}
+			fprintf(stdout,"\nCT: %d: %16llx%16llx",idx, result[0],result[1]);
+			key_values[0] = key_values[0] ^ result[0];
+			key_values[1] = key_values[1] ^ result[1];
+		}
+		
+		
+		GET_TIME_VAL(1);
+				
+		for (k =0; k<ch_size/2; k=k+2)
+			printf("\n%16llx%16llx",result[k],result[k+1]);
+	
+				
+		printf("\ntime taken (latency) : %f ms, N= %d \n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)),ch_size/4);
+		// Done with device
+	        fpga_close(fpga);
+	}
+	
+	else if (option == 4) { // Send data, receive data
 		if (argc < 6) {
 			printf("Usage: %s %d <fpga id> <chnl> <out channel size in channel tester in bytes> <num inputs to transfer>\n", argv[0], option);
 			return -1;
@@ -189,7 +344,6 @@ int main(int argc, char** argv) {
 		//remWords = numWords%ch_size;
 		// Get the device with id
 		fpga = fpga_open(id);
-		//uint64_t result[ch_size];
 		if (fpga == NULL) {
 			printf("Could not get FPGA %d\n", id);
 			return -1;
@@ -210,7 +364,7 @@ int main(int argc, char** argv) {
 			else
 				sent_values[idx+k] = sent_values[idx+k]|(sent_values[idx+k]/2);
 		}
-		for (idx =0; idx<1024; idx++)
+		for (idx =0; idx<DATA_CH_SIZE; idx++)
 			sent_values[idx+256]=sent_values[idx]; 
 		
 		//for (idx =0; idx<128; idx=idx+2)
