@@ -1,3 +1,0 @@
-riffa testbench :
-supplies two 64-bit inputs and recieves of two 64-bits output serially N times.
-N is given while running the executable "testutil" 

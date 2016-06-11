@@ -1,0 +1,108 @@
+Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
+| Date         : Thu May 26 19:13:43 2016
+| Host         : AJIT6 running 64-bit Ubuntu 12.04.5 LTS
+| Command      : report_drc
+--------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: KC705_Gen1x8If64
+          Floorplan: design_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+           Max violations: <unlimited>
+         Violations found: 13
+
+2. REPORT DETAILS
+-----------------
+CFGBVS-1#1 Warning
+Missing CFGBVS and CONFIG_VOLTAGE Design Properties  
+Neither the CFGBVS nor CONFIG_VOLTAGE voltage property is set in the current_design.  Configuration bank voltage select (CFGBVS) must be set to VCCO or GND, and CONFIG_VOLTAGE must be set to the correct configuration voltage, in order to determine the I/O voltage support for the pins in bank 0.  It is suggested to specify these either using the 'Edit Device Properties' function in the GUI or directly in the XDC file using the following syntax:
+
+ set_property CFGBVS value1 [current_design]
+ #where value1 is either VCCO or GND
+
+ set_property CONFIG_VOLTAGE value2 [current_design]
+ #where value2 is the voltage provided to configuration bank 0
+
+Refer to the device configuration user guide for more information.
+Related violations: <none>
+
+PDRC-153#1 Warning
+Gated clock check  
+Net riffa/riffa_inst/channels[0].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/wDirSet is a gated clock net sourced by a combinational pin riffa/riffa_inst/channels[0].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1/O, cell riffa/riffa_inst/channels[0].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PDRC-153#2 Warning
+Gated clock check  
+Net riffa/riffa_inst/channels[0].channel/channel/txPort/gate/fifo/rdPtrEmpty/wDirSet is a gated clock net sourced by a combinational pin riffa/riffa_inst/channels[0].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__0/O, cell riffa/riffa_inst/channels[0].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__0. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PDRC-153#3 Warning
+Gated clock check  
+Net riffa/riffa_inst/channels[1].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/wDirSet is a gated clock net sourced by a combinational pin riffa/riffa_inst/channels[1].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1__1/O, cell riffa/riffa_inst/channels[1].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1__1. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PDRC-153#4 Warning
+Gated clock check  
+Net riffa/riffa_inst/channels[1].channel/channel/txPort/gate/fifo/rdPtrEmpty/wDirSet is a gated clock net sourced by a combinational pin riffa/riffa_inst/channels[1].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__2/O, cell riffa/riffa_inst/channels[1].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__2. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PLHOLDVIO-2#1 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT riffa/riffa_inst/channels[0].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1 is driving clock pin of 1 cells. This could lead to large hold time violations. First few involved cells are:
+    riffa/riffa_inst/channels[0].channel/channel/rxPort/mainFifo/fifo/asyncCompare/rDir_reg {FDCE}
+
+Related violations: <none>
+
+PLHOLDVIO-2#2 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT riffa/riffa_inst/channels[0].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__0 is driving clock pin of 1 cells. This could lead to large hold time violations. First few involved cells are:
+    riffa/riffa_inst/channels[0].channel/channel/txPort/gate/fifo/asyncCompare/rDir_reg {FDCE}
+
+Related violations: <none>
+
+PLHOLDVIO-2#3 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT riffa/riffa_inst/channels[1].channel/channel/rxPort/mainFifo/fifo/rdPtrEmpty/rDir_i_1__1 is driving clock pin of 1 cells. This could lead to large hold time violations. First few involved cells are:
+    riffa/riffa_inst/channels[1].channel/channel/rxPort/mainFifo/fifo/asyncCompare/rDir_reg {FDCE}
+
+Related violations: <none>
+
+PLHOLDVIO-2#4 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT riffa/riffa_inst/channels[1].channel/channel/txPort/gate/fifo/rdPtrEmpty/rDir_i_1__2 is driving clock pin of 1 cells. This could lead to large hold time violations. First few involved cells are:
+    riffa/riffa_inst/channels[1].channel/channel/txPort/gate/fifo/asyncCompare/rDir_reg {FDCE}
+
+Related violations: <none>
+
+REQP-181#1 Advisory
+writefirst  
+Synchronous clocking for BRAM (module1/interface0/cpu_to_riffa_q/dual_clock_fifo/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gbm.gbmg.gbmga.ngecc.bmg/inst_blk_mem_gen/gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_7SERIES.NO_BMM_INFO.SDP.WIDE_PRIM36_NO_ECC.ram) in SDP mode with Write First mode may have address collisions if the same address appears on both read and write ports. It is suggested to use Read First mode to avoid any conditions for address collision. See the FPGA Memory Resources User Guide for additional information.
+Related violations: <none>
+
+REQP-181#2 Advisory
+writefirst  
+Synchronous clocking for BRAM (module1/interface0/riffa_to_cpu_q/dual_clock_fifo/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gbm.gbmg.gbmga.ngecc.bmg/inst_blk_mem_gen/gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_7SERIES.NO_BMM_INFO.SDP.WIDE_PRIM36_NO_ECC.ram) in SDP mode with Write First mode may have address collisions if the same address appears on both read and write ports. It is suggested to use Read First mode to avoid any conditions for address collision. See the FPGA Memory Resources User Guide for additional information.
+Related violations: <none>
+
+REQP-181#3 Advisory
+writefirst  
+Synchronous clocking for BRAM (module1/interface1/cpu_to_riffa_q/dual_clock_fifo/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gbm.gbmg.gbmga.ngecc.bmg/inst_blk_mem_gen/gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_7SERIES.NO_BMM_INFO.SDP.WIDE_PRIM36_NO_ECC.ram) in SDP mode with Write First mode may have address collisions if the same address appears on both read and write ports. It is suggested to use Read First mode to avoid any conditions for address collision. See the FPGA Memory Resources User Guide for additional information.
+Related violations: <none>
+
+REQP-181#4 Advisory
+writefirst  
+Synchronous clocking for BRAM (module1/interface1/riffa_to_cpu_q/dual_clock_fifo/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.mem/gbm.gbmg.gbmga.ngecc.bmg/inst_blk_mem_gen/gnativebmg.native_blk_mem_gen/valid.cstr/ramloop[0].ram.r/prim_noinit.ram/DEVICE_7SERIES.NO_BMM_INFO.SDP.WIDE_PRIM36_NO_ECC.ram) in SDP mode with Write First mode may have address collisions if the same address appears on both read and write ports. It is suggested to use Read First mode to avoid any conditions for address collision. See the FPGA Memory Resources User Guide for additional information.
+Related violations: <none>
+
+
