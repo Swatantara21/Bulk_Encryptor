@@ -10,7 +10,7 @@
 #include "vhdlCStubs.h"
 #endif
 
-#define ORDER 128
+#define ORDER 129
 
 uint64_t sent_values[2];
 uint64_t cmd_values[3];
@@ -69,10 +69,12 @@ void Sender()
 	}
 	
 	k=0;
-	cmd_values[1] = 0x8000000000000008;
+	cmd_values[1] = 0x8800000000000008;
 	cmd_values[0] = 0x0000000000000000;
+	cmd_values[2] = 0x0000000000000000;
+	cmd_values[3] = 0x0000000000000001;
 	
-	write_uint64_n("in_data",cmd_values,2);
+	write_uint64_n("in_data",cmd_values,4);
 	sent_values[0] = 0x8000000000000000;
 	sent_values[1] = 0x0000000000000000;
 	
@@ -114,6 +116,10 @@ int main(int argc, char* argv[])
 
 	PTHREAD_DECL(Sender);
 	PTHREAD_CREATE(Sender);
+	//PTHREAD_DECL(SenderCmd);
+	//PTHREAD_CREATE(SenderCmd);
+	//PTHREAD_DECL(RecvStatus);
+	//PTHREAD_CREATE(RecvStatus);
 	
 	
 	uint8_t idx, jdx;
@@ -133,5 +139,7 @@ int main(int argc, char* argv[])
 	}
 	
 	PTHREAD_CANCEL(Sender);
+	//PTHREAD_CANCEL(SenderCmd);
+	//PTHREAD_CANCEL(RecvStatus);
 	return(0);
 }

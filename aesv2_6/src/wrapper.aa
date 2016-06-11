@@ -1,29 +1,35 @@
 $pipe in_data : $uint<64> $depth 2
 $pipe out_data : $uint<64> $depth 2
-$pipe out_wrap_cmd : $uint<64> $depth 4
-$pipe out_wrap_data : $uint<64> $depth 512
-$pipe w_out_buf : $uint<64> $depth 512
+$pipe out_wrap_cmd : $uint<64> $depth 2
+$pipe out_wrap_data : $uint<128> $depth 2
+$pipe w_in_buf : $uint<128> $depth 512
+$pipe w_out_buf : $uint<128> $depth 512
+
 $module [In_wrap_daemon] $in() $out() $is
 {	
 	$constant ZERO_COUNT : $uint<15> := 0
 	$constant ONE_COUNT : $uint<15> := 1
-	$constant MAX_COUNT : $uint<15> := 511
+	$constant MAX_COUNT : $uint<15> := 511 //127
 	
 	$branchblock[MAIN] {
 		
-		$volatile head0 := in_data
-		head1 := in_data
+		//$volatile head0 := in_data
+		head_in := w_in_buf
+		
+		$volatile $split (head_in 64 64) (head0 head1)
 		
 		out_wrap_cmd := head1
 		cmd_in := head1
+		
 		$volatile $split (head1 1 3 1 44 15) (ED mode got_new_key xxx count)
 		
+		$if (got_new_key == 1) $then 
+			$volatile key := w_in_buf
+			$split (key 64 64) (keyA keyB)
+			cmd_in := keyA
+			cmd_in := keyB
+		$endif
 		
-		$guard (got_new_key) cmd_in := in_data
-		$guard (got_new_key) cmd_in := in_data
-		
-		//$volatile max_count_var := ($mux got_new_key ($bitcast ($uint<15>) 125) ($bitcast ($uint<15>) 126))
-		//$volatile count_num := (count - 1)
 		count_blocks := ($excmux
 					(MAX_COUNT < count)
 						MAX_COUNT
@@ -37,12 +43,12 @@ $module [In_wrap_daemon] $in() $out() $is
 		$endmerge
 		
 				$if (ED == 0) $then
-					e_in_data := in_data
-					e_in_data := in_data
+					e_in_buf := w_in_buf
+					//e_in_data := w_in_buf
 	
 				$else
-					d_in_data := in_data
-					d_in_data := in_data
+					d_in_buf := w_in_buf
+					//d_in_data := w_in_buf
 				$endif
 	
 			
@@ -58,8 +64,8 @@ $module [In_wrap_daemon] $in() $out() $is
 				$endmerge
 		
 			
-						out_wrap_data := in_data
-						out_wrap_data := in_data
+						out_wrap_data := w_in_buf
+						//out_wrap_data := w_in_buf
 
 				$volatile n_count_var2 := (count_var2 + 1)
 				$if (count_var2 < MAX_COUNT) $then $place [loop2] $endif
@@ -75,15 +81,18 @@ $module [Out_wrap_daemon] $in() $out() $is
 	$constant ZERO_COUNT : $uint<15> := 0
 	$constant ONE_COUNT : $uint<15> := 1
 	$constant ZERO : $uint<64> := 0
-	$constant MAX_COUNT : $uint<15>:= 511
+	$constant MAX_COUNT : $uint<15>:= 511 //127
 	$branchblock[MAIN] {
 		
 		head_out := out_wrap_cmd
-		w_out_buf := head_out
+		//out_data := head_out
+		st_out := status_out
+		
+		w_out_buf := ($concat head_out st_out)
 		
 		$volatile $split (head_out 1 3 1 44 15) (ED mode got_new_key xxx count)
 		
-		w_out_buf := status_out
+		
 		
 		
 		//$volatile max_count_var := ($mux got_new_key ($bitcast ($uint<15>) 125) ($bitcast ($uint<15>) 126))
@@ -100,12 +109,12 @@ $module [Out_wrap_daemon] $in() $out() $is
 		$endmerge
 		
 				$if (ED == 0) $then
-					w_out_buf := e_out_data
-					w_out_buf := e_out_data
+					w_out_buf := e_out_buf
+					//out_data := e_out_data
 	
 				$else
-					w_out_buf := d_out_data
-					w_out_buf := d_out_data
+					w_out_buf := d_out_buf
+					//out_data := d_out_data
 				$endif
 	
 			
@@ -121,7 +130,7 @@ $module [Out_wrap_daemon] $in() $out() $is
 		
 			
 						w_out_buf := out_wrap_data
-						w_out_buf := out_wrap_data
+						//out_data := out_wrap_data
 
 				$volatile n_count_var2 := (count_var2 + 1)
 				$if (count_var2 < MAX_COUNT) $then $place [loop2] $endif
@@ -129,15 +138,26 @@ $module [Out_wrap_daemon] $in() $out() $is
 			$endif
 		$endif
 		
-		//$guard (got_new_key) w_out_buf := ZERO
-		//$guard (got_new_key) w_out_buf := ZERO
+		//$guard (got_new_key) out_data := ZERO
+		//$guard (got_new_key) out_data := ZERO
 		
 	}
+}
+$module [w_in_buff] $in() $out () $is
+{	
+	
+	Ina := in_data
+	Inb := in_data
+
+	w_in_buf := ($concat Ina Inb)
+	
 }
 $module [w_out_buff] $in() $out () $is
 {	
 	 		
 	Z := w_out_buf
-	out_data := Z
+	$volatile $split (Z 64 64)  (Ya Yb)
+	out_data := Ya
+	out_data := Yb
 		
 }

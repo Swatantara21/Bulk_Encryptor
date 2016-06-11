@@ -1,0 +1,14 @@
+AES Bulk encryptor/decryptor:
+	performs only encryption
+	
+	have 6 interfacing pipes
+	e_in_data, e_out_data, d_in_data, d_out_data, cmd_in and status_out
+	
+Wrapper: 
+	Used to convert above 6 pipes into 1 input and 1 output pipe
+	so that riffa 1 channel communication can be used
+	
+	The data is communicated in the form of packet (2048 32-bit words)
+	having first 4 words as header.
+	If new key is needed to provide then the packet size is increased by 4 32-bit words.
+	Wrapperis modified and buffers are merged to take less time

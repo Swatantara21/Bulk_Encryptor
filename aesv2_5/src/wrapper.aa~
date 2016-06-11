@@ -1,13 +1,13 @@
 $pipe in_data : $uint<64> $depth 2
 $pipe out_data : $uint<64> $depth 2
-$pipe out_wrap_cmd : $uint<64> $depth 4
-$pipe out_wrap_data : $uint<64> $depth 512
-$pipe w_out_buf : $uint<64> $depth 512
+$pipe out_wrap_cmd : $uint<64> $depth 2
+$pipe out_wrap_data : $uint<64> $depth 2
+
 $module [In_wrap_daemon] $in() $out() $is
 {	
 	$constant ZERO_COUNT : $uint<15> := 0
 	$constant ONE_COUNT : $uint<15> := 1
-	$constant MAX_COUNT : $uint<15> := 511
+	$constant MAX_COUNT : $uint<15> := 127
 	
 	$branchblock[MAIN] {
 		
@@ -75,15 +75,15 @@ $module [Out_wrap_daemon] $in() $out() $is
 	$constant ZERO_COUNT : $uint<15> := 0
 	$constant ONE_COUNT : $uint<15> := 1
 	$constant ZERO : $uint<64> := 0
-	$constant MAX_COUNT : $uint<15>:= 511
+	$constant MAX_COUNT : $uint<15>:= 127
 	$branchblock[MAIN] {
 		
 		head_out := out_wrap_cmd
-		w_out_buf := head_out
+		out_data := head_out
 		
 		$volatile $split (head_out 1 3 1 44 15) (ED mode got_new_key xxx count)
 		
-		w_out_buf := status_out
+		out_data := status_out
 		
 		
 		//$volatile max_count_var := ($mux got_new_key ($bitcast ($uint<15>) 125) ($bitcast ($uint<15>) 126))
@@ -100,12 +100,12 @@ $module [Out_wrap_daemon] $in() $out() $is
 		$endmerge
 		
 				$if (ED == 0) $then
-					w_out_buf := e_out_data
-					w_out_buf := e_out_data
+					out_data := e_out_data
+					out_data := e_out_data
 	
 				$else
-					w_out_buf := d_out_data
-					w_out_buf := d_out_data
+					out_data := d_out_data
+					out_data := d_out_data
 				$endif
 	
 			
@@ -120,8 +120,8 @@ $module [Out_wrap_daemon] $in() $out() $is
 				$endmerge
 		
 			
-						w_out_buf := out_wrap_data
-						w_out_buf := out_wrap_data
+						out_data := out_wrap_data
+						out_data := out_wrap_data
 
 				$volatile n_count_var2 := (count_var2 + 1)
 				$if (count_var2 < MAX_COUNT) $then $place [loop2] $endif
@@ -129,15 +129,8 @@ $module [Out_wrap_daemon] $in() $out() $is
 			$endif
 		$endif
 		
-		//$guard (got_new_key) w_out_buf := ZERO
-		//$guard (got_new_key) w_out_buf := ZERO
+		//$guard (got_new_key) out_data := ZERO
+		//$guard (got_new_key) out_data := ZERO
 		
 	}
-}
-$module [w_out_buff] $in() $out () $is
-{	
-	 		
-	Z := w_out_buf
-	out_data := Z
-		
 }

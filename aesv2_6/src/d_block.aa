@@ -1,0 +1,92 @@
+//$pipe d_in_data  : $uint<64> $depth 2
+//$pipe d_out_data : $uint<64> $depth 2
+$pipe d_in_buf : $uint<128> $depth 2 //512
+$pipe d_out_buf : $uint<128> $depth 2 //512
+$pipe d_cmd_pipe : $uint<144> $depth 2
+$noblock $pipe d_block_done : $uint<1> $depth 2
+
+$module [d_block_daemon] $in() $out () $is
+{	
+	
+	$constant RConstant_1 : $uint<8> := _h01
+	$constant NOT_LAST : $uint<1> := 0
+	$constant LAST : $uint<1> := 1
+	$constant ZERO_COUNT : $uint<15>:= 0
+	
+	$branchblock[D_MAIN]  {
+		
+		d_block_done := 1
+		$merge $entry NotGotCmd $endmerge
+		
+	   	d_init_cmd := d_cmd_pipe
+	   	$volatile $split(d_init_cmd 1 15 128) (d_get_key d_init_count d_init_key)
+	   	
+	   	$if(d_get_key == 0) $then $place [NotGotCmd] $endif
+	   
+	   	
+	   	
+	   	$merge $entry GotNewKey 
+	   	   $phi K0 	:= d_init_key $on $entry	d_new_key $on GotNewKey
+	   	   $phi countA 	:= d_init_count $on $entry	d_new_count $on GotNewKey
+	   	$endmerge
+	   	
+	   	$call key_expand_single(K0 RConstant_1) (K1 RConstant_2)
+	   	$call key_expand_single(K1 RConstant_2) (K2 RConstant_3)
+	   	$call key_expand_single(K2 RConstant_3) (K3 RConstant_4)
+	   	$call key_expand_single(K3 RConstant_4) (K4 RConstant_5)
+	   	$call key_expand_single(K4 RConstant_5) (K5 RConstant_6)
+	   	$call key_expand_single(K5 RConstant_6) (K6 RConstant_7)
+	   	$call key_expand_single(K6 RConstant_7) (K7 RConstant_8)
+	   	$call key_expand_single(K7 RConstant_8) (K8 RConstant_9)
+	   	$call key_expand_single(K8 RConstant_9) (K9 RConstant_10)
+	   	$call key_expand_single(K9 RConstant_10) (K10 RConstant_11)
+	   	
+		$merge $entry NotGotNewKey
+	   		$phi countB 	:= countA $on $entry	d_new_count $on NotGotNewKey
+	   	$endmerge
+		
+		
+		$dopipeline $depth 2 $buffering 1
+		$merge $entry $loopback
+		////************** or implement a counter module
+			$phi count_var 	:= ZERO_COUNT $on $entry	n_count_var $on $loopback
+		$endmerge
+			
+	//Ina := d_in_data
+	//Inb := d_in_data
+	
+			$volatile in128 := d_in_buf
+
+			$volatile round_S10 := (in128 ^ K10)
+			$call dec_round (round_S10 K9 LAST) (round_S9)
+			$call dec_round (round_S9 K8 NOT_LAST) (round_S8)
+			$call dec_round (round_S8 K7 NOT_LAST) (round_S7)
+			$call dec_round (round_S7 K6 NOT_LAST) (round_S6)
+			$call dec_round (round_S6 K5 NOT_LAST) (round_S5)
+			$call dec_round (round_S5 K4 NOT_LAST) (round_S4)
+			$call dec_round (round_S4 K3 NOT_LAST) (round_S3)
+			$call dec_round (round_S3 K2 NOT_LAST) (round_S2)
+			$call dec_round (round_S2 K1 NOT_LAST) (round_S1)
+			$call dec_round (round_S1 K0 NOT_LAST) (round_S0)
+			
+			
+			//$volatile $split (round_S0 64 64)  (Ya Yb)
+			d_out_buf := round_S0
+			
+		//d_out_data := Ya
+		//d_out_data := Yb
+
+			n_count_var := (count_var + 1)
+		$while (n_count_var < countB)	
+	
+		d_block_done := 1
+		d_new_cmd := d_cmd_pipe
+		$volatile $split(d_new_cmd 1 15 128) (d_get_new_key d_new_count d_new_key)
+	
+		$if (d_get_new_key == 1) $then $place [GotNewKey]
+		$else $place [NotGotNewKey]
+		$endif
+	}
+}
+
+
