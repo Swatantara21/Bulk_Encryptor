@@ -1,0 +1,6 @@
+AES Bulk encryptor/decryptor:
+	performs only encryption
+	
+	have 6 interfacing pipes
+	e_in_data, e_out_data, d_in_data, d_out_data, cmd_in and status_out
+	

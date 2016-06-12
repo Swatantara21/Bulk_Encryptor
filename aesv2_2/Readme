@@ -1,0 +1,7 @@
+AES Bulk encryptor:
+	performs only encryption
+	
+	have 4 interfacing pipes
+	in_data, out_data, cmd_in, status_out
+	tested on fpga using 2 channel riffa interface
+

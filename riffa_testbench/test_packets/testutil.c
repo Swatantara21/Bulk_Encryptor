@@ -7,12 +7,11 @@
 //#ifndef SW
 //#include "vhdlCStubs.h"
 //#endif
-#define DATA_CH_SIZE 258 
+#define DATA_CH_SIZE 260 
 //2064 bytes = 129 blocks = 258 words (64 bit) = 516 (32 bit) words
-
-uint64_t result[DATA_CH_SIZE];
-uint64_t sent_values[DATA_CH_SIZE];
-uint64_t cmd_values[8];
+uint64_t result[1024];
+uint64_t sent_values[1024];
+uint64_t cmd_values[4];
 uint64_t cmd_values2[8];
 //uint32_t numWords;
 //fpga_t * fpga;
@@ -23,11 +22,12 @@ uint64_t cmd_values2[8];
 int main(int argc, char** argv) {
 	fpga_t * fpga;
 	fpga_info_list info;
+	
 	int option;
 	int i;
 	int id;
 	int chnl;
-	int ch_size;
+	int ch_data_size,ch_size;
 	size_t numWords, numLoops, remWords;
 	int sent;
 	int recvd;
@@ -89,7 +89,8 @@ int main(int argc, char** argv) {
 			printf("KAT(Known Answer Test) out chnl = 129 blocks\nUsage: %s %d <fpga id> <chnl> \n", argv[0], option);
 			return -1;
 		}
-
+		
+		
 		//size_t maxWords, minWords;
 		id = atoi(argv[2]);
 		chnl = atoi(argv[3]);
@@ -103,16 +104,22 @@ int main(int argc, char** argv) {
 		}
 
 		k=0;
-		cmd_values[1] = 0x8800000000000080;
+		cmd_values[1] = 0x8800000000000000 + 127;
 		cmd_values[0] = 0x0000000000000000;
 		cmd_values[2] = 0x0000000000000000;
 		cmd_values[3] = 0x0000000000000000;
 		
+		cmd_values2[1] = 0x8000000000000000 + 127;
+		cmd_values2[0] = 0x0000000000000000;
+		
+		//sent_values[1] = 0x0800000000000000 + 127;
+		//sent_values[0] = 0x0000000000000000;
+		//sent_values[2] = 0x0000000000000000;
+		//sent_values[3] = 0x0000000000000000;
+				
 		sent_values[0] = 0x8000000000000000;
 		sent_values[1] = 0x0000000000000000;
-		sent_values[0] = 0x8000000000000000;
-		sent_values[1] = 0x0000000000000000;
-		for(idx = 1; idx < 128; idx++)
+		for(idx = 1; idx < 127; idx++)
 		{	
 			sent_values[2*idx]= sent_values[2*idx - 2];
 			sent_values[2*idx + 1]= sent_values[2*idx - 1];
@@ -127,20 +134,40 @@ int main(int argc, char** argv) {
 		}
 		GET_TIME_VAL(0);
 		
-		sent = fpga_send(fpga, chnl, cmd_values, 8, 0, 1, 25000);
+		sent = fpga_send(fpga, chnl, cmd_values, 8, 0, 0, 25000);
 		fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
-		sent = fpga_send(fpga, chnl, sent_values, 512, 0, 1, 25000);
+		sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+		fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+		
+		sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+		fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+		sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+		fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+		
+		cmd_values[1] = 0x0800000000000000 + 127;
+		cmd_values2[1] = 0x0000000000000000 + 127;
+		
+		sent = fpga_send(fpga, chnl, cmd_values, 8, 0, 0, 25000);
+		fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+		sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+		fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+		
+		sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+		fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+		sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
 		fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
 		
 		//fprintf(stdout,"\nsend_status = %d -- %d ,    input =%16llx %16llx",sent, idx,sent_values[0],sent_values[1]);
 
-		recvd = fpga_recv(fpga, chnl, result, 516, 25000);
+		recvd = fpga_recv(fpga, chnl, result, 2048, 25000);
+		
+				
 		GET_TIME_VAL(1);
-		if (recvd < 516) fprintf(stderr,"\nERROR:-------------------------");
+		if (recvd < 2048) fprintf(stdout,"\nERROR:-------------------------");
 		fprintf(stdout,"\nrecv_status = %d -- %d",recvd,3);
 		
 		//fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %16llx %16llx",recvd,idx, result[0],result[1]);
-		for(idx = 0; idx < 129; idx++)
+		for(idx = 0; idx < 512; idx++)
 			fprintf(stdout,"\n%16llx%16llx",result[2*idx],result[2*idx + 1]);
 
 		printf("\ntime taken (latency): %f ms\n",(TIME_VAL_TO_MS(1) - TIME_VAL_TO_MS(0)));
@@ -150,7 +177,7 @@ int main(int argc, char** argv) {
 	}
 	else if (option == 3) { // Send data, receive data
 		if (argc < 6) {
-			printf("Usage NOT WORKING : %s %d <fpga id> <chnl> <channel size in channel tester in bytes> <num blocks to transfer>\n", argv[0], option);
+			printf("Usage NOT WORKING : %s %d <fpga id> <chnl> <channel size specified in channel tester (32 bit words)> <num blocks to transfer>\n", argv[0], option);
 			return -1;
 		}
 
@@ -158,10 +185,12 @@ int main(int argc, char** argv) {
 		id = atoi(argv[2]);
 		chnl = atoi(argv[3]);
 		numWords = atoi(argv[5]);
-		//ch_size = atoi(argv[4])/4;
-		ch_size = 128;
-		numLoops = numWords/ch_size;
-		remWords = numWords%ch_size;
+		ch_size = atoi(argv[4]);
+		ch_data_size = ch_size/4 -1; //in blocks(words = 128 bits) 
+		//ch_data_size = 128;
+		numLoops = numWords/ch_data_size;
+		remWords = numWords%ch_data_size;
+		if (remWords) numLoops++;
 		// Get the device with id
 		fpga = fpga_open(id);
 		if (fpga == NULL) {
@@ -173,38 +202,92 @@ int main(int argc, char** argv) {
 		
 		k=0;
 		
-		cmd_values[1] = 0x8800000000000080;
+		cmd_values[1] = 0x8800000000000000 + 127;
 		cmd_values[0] = 0x0000000000000000;
 		cmd_values[2] = 0x0000000000000000;
 		cmd_values[3] = 0x0000000000000000;
 		
-		cmd_values2[1] = 0x8800000000000080;
+		cmd_values2[1] = 0x8000000000000000 + 127;
 		cmd_values2[0] = 0x0000000000000000;
 		
+				
 		sent_values[0] = 0x8000000000000000;
-		sent_values[1] = 0x0000000000000000;;
-		for (idx =0; idx<ch_size; idx++){
+		sent_values[1] = 0x0000000000000000;
+		
+		for (idx = 1; idx<ch_data_size; idx++){
 			sent_values[2*idx] =  0x8000000000000000;
 			sent_values[2*idx +1] =  0x0000000000000000;
 		}
 		
 		
-		GET_TIME_VAL(0);
-		sent = fpga_send(fpga, chnl, cmd_values, 8, 0, 1, 25000);
-		sent = fpga_send(fpga, chnl, sent_values, 4*ch_size, 0, 1, 25000);
 		
-		recvd = fpga_recv(fpga, chnl, result, 4*(ch_size+1), 25000);
+		GET_TIME_VAL(0);
+		
+		sent = fpga_send(fpga, chnl, cmd_values, 8, 0, 0, 25000);
+		//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+		//sent = fpga_send(fpga, chnl, sent_values, ch_data_size*4, 0, 1, 25000);
+		sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+		//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+		
+			sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+			//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+			sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+			//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+			
+			sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+			//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+			sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+			//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+			
+			sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+			//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+			sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+			//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
 				
+				
+			
+		recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
+		//fprintf(stdout,"\nrecv_status = %d -- %d",recvd,3);
+		
+		//fprintf(stdout,"\nrecv_status = %d -- %d ,    output = %16llx %16llx",recvd,idx, result[0],result[1]);
+		//for(idx = 0; idx < 130; idx++)
+		//	fprintf(stdout,"\n%16llx%16llx",result[2*idx],result[2*idx + 1]);
+		
 		for(idx = 1; idx < numLoops; idx++)
 		{	
-			sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 1, 25000);
-		
-			sent = fpga_send(fpga, chnl, sent_values, 4*ch_size, 0, 1, 25000);
-			//for (idx =0; idx<2; idx++)
-			//	fprintf(stdout,"\n%16llx%16llx",sent_values[idx*2],sent_values[idx*2 +1]);
-			recvd = fpga_recv(fpga, chnl, result, 4*(ch_size+1), 25000);
+			sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+			//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+			//sent = fpga_send(fpga, chnl, sent_values, ch_data_size*4, 0, 1, 25000);
+			sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+			//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+			
+				sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+				//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+				sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+				//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+			
+				sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+				//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+				sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+				//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+			
+				sent = fpga_send(fpga, chnl, cmd_values2, 4, 0, 0, 25000);
+				//fprintf(stdout,"\ncmd_send_status = %d -- %d ",sent, 1);
+				sent = fpga_send(fpga, chnl, sent_values, 508, 0, 1, 25000);
+				//fprintf(stdout,"\ndata_send_status = %d -- %d ",sent, 2);
+						
+			
+			
+			recvd = fpga_recv(fpga, chnl, result, ch_size, 25000);
+			//fprintf(stdout,"\nrecv_status = %d -- %d",recvd,3);
+						
+			
 			//for (idx =0; idx<2; idx++)
 			//	fprintf(stdout,"\n%16llx%16llx",result[idx*2],result[idx*2 +1]);
+			
+			//for(idx = 0; idx < 130; idx++)
+			//	fprintf(stdout,"\n%16llx%16llx",result[2*idx],result[2*idx + 1]);
+
 			
 		}
 			//sent = fpga_send(fpga, chnl, sent_values, remWords*4, 0, 1, 25000);
