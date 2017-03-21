@@ -1,0 +1,76 @@
+$pipe cmd_in  : $uint<64> $depth 4 
+$pipe status_out  : $uint<64> $depth 2
+
+//
+// Implemented (HA!) by Anshul Gupta, commented by Madhav Desai.
+// Seems to read from the cmd_in pipe and do either encryption or decryption.
+//
+$module [c_block_daemon] $in () $out () $is
+{
+	// Read the first word from cmd_in.
+	command := cmd_in
+	$volatile $split (command 1 3 1 44 15) (ED mode got_new_key unused_44 count)
+	
+	// If got_new_key is 1, then get the 128 bit key
+	// by reading cmd_in twice.
+	$guard (got_new_key) Key_A := cmd_in
+	$guard (got_new_key) Key_B := cmd_in
+	
+	//
+	// Now based on ED, either do encryption or decryption.
+	//
+	$branchblock[Encryption] {
+		$if (ED == 0) $then
+
+			// this seems to be a request to the
+			// E/D units to send back information about
+			// their status.
+			status_out := 16 
+			$merge $entry e_block_BUSY $endmerge
+				
+			//
+			// e_block_done is a pipe? looks like. the encryption
+			// unit informing this guy that it is available?
+			//
+			e_status := e_block_done
+			// spin until e-block is ready.
+		   	$if(e_status == 0) $then 
+				$place [e_block_BUSY] 
+			$endif
+
+			// at this point the encryptor is ready.
+			// send it a command.
+		   	$volatile e_cmd := ($concat got_new_key count Key_A Key_B)
+		   	e_cmd_pipe := e_cmd
+		   	
+		
+		$endif
+	}
+	
+	$branchblock[Decryption] {
+		$if (ED == 1) $then
+
+			//
+			// Request status information
+			//
+			status_out := 32 
+			$merge $entry d_block_BUSY $endmerge
+
+			// get status information from the decrypt block.
+			d_status := d_block_done
+			// spin until d-block is ready.
+		   	$if(d_status == 0) $then 
+				$place [d_block_BUSY] 
+			$endif
+
+			//
+			// send command to the decrypt unit.
+			//
+		  	$volatile d_cmd := ($concat got_new_key count Key_A Key_B)
+		   	d_cmd_pipe := d_cmd
+		   	
+		$endif
+	
+	}
+
+}
