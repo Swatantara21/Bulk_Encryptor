@@ -1,0 +1,195 @@
+$pipe in_data : $uint<64> $depth 2
+$pipe out_data : $uint<64> $depth 2
+$pipe out_wrap_cmd : $uint<64> $depth 2
+$pipe out_wrap_data : $uint<128> $depth 2
+
+// data in/out.
+$pipe w_in_buf : $uint<128> $depth 512
+$pipe w_out_buf : $uint<128> $depth 512
+
+// What the ^%&% is this %&&%& doing?
+// 
+//   On the input side, 128 bit words are read from w_in_buf.
+//   The first word contains a 64 bit command which indicates
+//   whether there is a new key, specifies E/D, specifies a
+//   count of number of blocks to be E/D processed.
+//
+//   The specified count blocks are E/D processed, and 
+//   an additional COUNT_MAX-count blocks are passed through
+//   unmodified.
+//
+//   Processed/passed-through blocks are written out on out_wrap_data
+//   pipes.
+$module [In_wrap_daemon] $in() $out() $is
+{	
+	$constant ZERO_COUNT : $uint<15> := 0
+	$constant ONE_COUNT : $uint<15> := 1
+	$constant MAX_COUNT : $uint<15> := 511 //127
+	
+	$branchblock[MAIN] {
+		
+		// read from in-buf
+		head_in := w_in_buf
+		
+		// split into two parts.
+		$volatile $split (head_in 64 64) (head0 head1)
+		
+		// head1 is interpreted as a command.
+		//  (head0 is ignored??)
+		// sent to cmd_in for E/D processing and
+		cmd_in := head1
+		// out_wrap_cmd for routing info.
+		out_wrap_cmd := head1
+		
+		$volatile $split (head1 1 3 1 44 15) (ED mode got_new_key xxx count)
+		$if (got_new_key == 1) $then 
+			// read next 128 bit entry from in-buf.
+			key := w_in_buf
+			$split (key 64 64) (keyA keyB)
+			// send keys on cmd-in
+			cmd_in := keyA
+			cmd_in := keyB
+		$endif
+		
+
+		// next few blocks as specified by count to be
+		// sent on cmd_in
+		count_blocks := ($excmux
+					(MAX_COUNT < count)
+						MAX_COUNT
+
+					(MAX_COUNT >= count)
+						count
+				)
+	
+		// Begin loop1... count blocks to E/D processed.
+		$merge $entry loop1
+			$phi count_var 	:= ONE_COUNT $on $entry	n_count_var $on loop1
+		$endmerge
+
+		// E/D?
+		$if (ED == 0) $then
+			e_in_buf := w_in_buf
+		$else
+			d_in_buf := w_in_buf
+		$endif
+		
+		// next-count.
+		$volatile n_count_var := (count_var + 1)
+		
+		$if (count_var < count_blocks) $then 
+			$place [loop1]  // loop 1
+		$else 
+			// count blocks processed.
+			// remaining blocks are sent out to out-wrap!
+			$if (count_var < MAX_COUNT) $then
+			
+				$merge $entry loop2
+					$phi count_var2 := n_count_var $on $entry	n_count_var2 $on loop2
+				$endmerge
+
+				out_wrap_data := w_in_buf
+
+				$volatile n_count_var2 := (count_var2 + 1)
+				$if (count_var2 < MAX_COUNT) $then $place [loop2] $endif
+		
+			$endif
+		$endif
+		
+	}
+}
+
+//
+// Receives command and data and routes out
+// on E/D pipe.
+//
+$module [Out_wrap_daemon] $in() $out() $is
+{	
+	$constant ZERO_COUNT : $uint<15> := 0
+	$constant ONE_COUNT : $uint<15> := 1
+	$constant ZERO : $uint<64> := 0
+	$constant MAX_COUNT : $uint<15>:= 511 //127
+	$branchblock[MAIN] {
+		
+		// recv command 
+		head_out := out_wrap_cmd
+		// recv status-request from c-block.
+		st_out := status_out
+		
+		// what?
+		w_out_buf := ($concat head_out st_out)
+		$volatile $split (head_out 1 3 1 44 15) (ED mode got_new_key unused_44 count)
+		
+		
+		// number of blocks to be forwarded.
+		count_blocks := ($excmux
+					(MAX_COUNT < count)
+						MAX_COUNT
+
+					(MAX_COUNT >= count)
+						count
+				)
+	
+		$merge $entry loop1
+			$phi count_var 	:= ONE_COUNT $on $entry	n_count_var $on loop1
+		$endmerge
+
+		// Depending on E/D forward as indicated.		
+		$if (ED == 0) $then
+			w_out_buf := e_out_buf
+		$else
+			w_out_buf := d_out_buf
+		$endif
+
+		$volatile n_count_var := (count_var + 1)
+		$if (count_var < count_blocks) $then 
+			$place [loop1] 
+		$else
+			$if (count_var < MAX_COUNT) $then
+				$merge $entry loop2
+					$phi count_var2 := n_count_var $on $entry	n_count_var2 $on loop2
+				$endmerge
+
+				// spillover forwarded as is.
+				w_out_buf := out_wrap_data
+
+				$volatile n_count_var2 := (count_var2 + 1)
+				$if (count_var2 < MAX_COUNT) $then 
+					$place [loop2] 
+				$endif
+			$endif
+		$endif
+	}
+}
+
+$module [w_in_buff_daemon] $in() $out () $is
+{	
+	
+	$branchblock[loop] {
+		$dopipeline $depth 3 $buffering 2 $fullrate 
+		$merge $entry $loopback $endmerge
+
+			Ina := in_data
+			Inb := in_data
+			w_in_buf := ($concat Ina Inb)
+
+		$while 1
+	}
+	
+}
+$module [w_out_buff_daemon] $in() $out () $is
+{	
+	$branchblock[loop] {
+		$dopipeline $depth 3 $buffering 2 $fullrate 
+		$merge $entry $loopback $endmerge
+	 		
+			Z := w_out_buf
+
+			$volatile $split (Z 64 64)  (Ya Yb)
+
+			out_data := Ya
+			out_data := Yb
+		$while 1
+	}
+		
+}
