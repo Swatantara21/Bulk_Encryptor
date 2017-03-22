@@ -1,0 +1,8 @@
+Run make to produce
+	bin/
+		binaries (testbench and ghdl sim)
+	vhdl/
+		VHDL files from the ../Aa directory.
+
+Scratch area is
+	tmp/
