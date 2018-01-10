@@ -38,6 +38,7 @@ $module [In_wrap_daemon] $in() $out() $is
 		//  (head0 is ignored??)
 		// sent to cmd_in for E/D processing and
 		cmd_in := head1
+
 		// out_wrap_cmd for routing info.
 		out_wrap_cmd := head1
 		
