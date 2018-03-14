@@ -1,0 +1,65 @@
+Specification of Bulk-encryption Co-processor.
+-----------------------------------------------
+
+  Either encrypt/decrypt a 128-bit block
+
+  Inputs:
+	Pipe in_data 64-bits wide.
+  Outputs:
+	Pipe out_data 64-bits wide.
+
+  Internal registers
+	4xKey-register(s)
+	
+
+  Behaviour:
+
+	On reset, will wait for command packets.
+
+	command packets
+           key-register writes
+	   e/d command
+		number of blocks to process
+		whether to encrypt/decrypt
+		the key-register to use.
+		encryption/decryption mode.
+	   key-register reads.
+
+	In response to command packet, co-processor
+	sends a status packet on out_data
+
+	Based on command packet, co-processor waits
+	for e/d packets on in_data and writes response
+	e/d packets to out_data.
+
+
+  Pseudo-code of implementation.
+
+   main {
+	while(1)
+	{
+		cmd = getCommand()
+		resp = executeCommand()
+		sendResponse(resp)
+	}
+  }
+
+  executeCommand (cmd) {
+	if(isRegWrite(cmd))
+		writeRegister(cmd)
+	else if(isRegRead(cmd))
+		resp = readRegister(...)
+	else if(isEncrypt(cmd))
+		resp = encrypt (...)
+	else if(isDecrypt(cmd))
+		resp = decrypt (...)
+
+	return resp
+   }
+	
+  
+
+	
+		
+
+
