@@ -1,0 +1,16 @@
+$storage ttable_array: $uint<256> $of $uint<32>
+
+$pipeline $depth 15 $fullrate $buffering 2
+	$module [read_ttable]
+		$in (I: $uint<8>) $out (tentry: $uint<32>) $is
+{
+	tentry := ttable_array[I]
+}
+
+
+$pipeline $depth 15 $fullrate $buffering 2
+	$module [write_ttable]
+		$in (I: $uint<8> tentry: $uint<32>) $out () $is
+{
+	 ttable_array[I] := tentry
+}
