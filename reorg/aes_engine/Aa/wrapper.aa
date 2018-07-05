@@ -114,6 +114,7 @@ $module [Out_wrap_daemon] $in() $out() $is
 		
 		// recv command 
 		head_out := out_wrap_cmd
+
 		// recv status-request from c-block.
 		st_out := status_out
 		
