@@ -65,7 +65,8 @@ $module [e_block_daemon] $in() $out () $is
 		$merge $entry $loopback
 			$phi count_var 	:= ZERO_COUNT $on $entry	n_count_var $on $loopback
 		$endmerge
-			$volatile in128 := e_in_buf
+			in128 := e_in_buf
+			$rreport (e_block_daemon plain_text in128 K0)
 
 			$volatile round_S0 := (in128 ^ K0)
 			$call enc_round (round_S0 K1 NOT_LAST) (round_S1)
@@ -80,6 +81,7 @@ $module [e_block_daemon] $in() $out () $is
 			$call enc_round (round_S9 K10 LAST) (round_S10)
 		
 			e_out_buf := round_S10
+			$rreport (e_block_daemon encrypted_text round_S10)
 			
 	
 			n_count_var := (count_var + 1)

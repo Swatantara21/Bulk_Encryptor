@@ -6,7 +6,7 @@ But what Anshul forgot to do is to document what he had done.
 Of course this was to be expected.
 
 So MPD needs to document this because it seems to matter to him.
-Lets try to understand what Mr. Moron Gupta has done but forgotten
+Lets try to understand what Mr. Gupta has done but forgotten
 to document.
 
 c_block.aa

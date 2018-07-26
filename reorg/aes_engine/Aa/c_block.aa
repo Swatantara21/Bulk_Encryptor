@@ -7,19 +7,30 @@ $pipe status_out  : $uint<64> $depth 2
 //
 $module [c_block_daemon] $in () $out () $is
 {
-	// Read the first word from cmd_in.
-	command := cmd_in
-	$volatile $split (command 1 3 1 44 15) (ED mode got_new_key unused_44 count)
+	$branchblock [loop] {
+
+	$merge $entry restart_daemon $endmerge
+
+		// Read the first word from cmd_in.
+		command := cmd_in
+
+		$volatile $split (command 1 3 1 44 15) (ED mode got_new_key unused_44 count)
+
+		$rreport (c_block_daemon received_command command ED mode got_new_key count)
 	
-	// If got_new_key is 1, then get the 128 bit key
-	// by reading cmd_in twice.
-	$guard (got_new_key) Key_A := cmd_in
-	$guard (got_new_key) Key_B := cmd_in
+		// If got_new_key is 1, then get the 128 bit key
+		// by reading cmd_in twice.
+		$guard (got_new_key) Key_A := cmd_in
+		$guard (got_new_key) 
+			$rreport (c_block_daemon received_key_A Key_A)
+
+		$guard (got_new_key) Key_B := cmd_in
+		$guard (got_new_key) 
+			$rreport (c_block_daemon received_key_B Key_B)
 	
-	//
-	// Now based on ED, either do encryption or decryption.
-	//
-	$branchblock[Encryption] {
+		//
+		// Now based on ED, either do encryption or decryption.
+		//
 		$if (ED == 0) $then
 
 			// this seems to be a request to the
@@ -45,9 +56,7 @@ $module [c_block_daemon] $in () $out () $is
 		   	
 		
 		$endif
-	}
-	
-	$branchblock[Decryption] {
+
 		$if (ED == 1) $then
 
 			//
@@ -70,7 +79,9 @@ $module [c_block_daemon] $in () $out () $is
 		   	d_cmd_pipe := d_cmd
 		   	
 		$endif
+
+		$place [restart_daemon]
 	
 	}
-
 }
+

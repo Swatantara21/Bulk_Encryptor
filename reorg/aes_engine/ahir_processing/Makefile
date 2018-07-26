@@ -5,6 +5,7 @@ VHDL_LIB=$(AHIR_RELEASE)/vhdl
 VHDL_VHPI_LIB=$(AHIR_RELEASE)/CtestBench/vhdl
 FUNCTIONLIB=$(AHIR_RELEASE)/functionLibrary/
 AA=../Aa
+Aa2C=./aa2c
 TB=../tb
 VHDL=./vhdl
 TMP=./tmp
@@ -14,6 +15,7 @@ TOVC:aalink aa2vc
 VC2VHDL: vc2vhdl  vhdlsim
 AA2VHDLSIM: aa2vc  vc2vhdl  vhdlsim
 TOVHDL:TOVC vc2vhdl
+AA2C: aalink aa2c aa2c_tb
 
 
 TOPMODULES=-T e_block_daemon -T c_block_daemon -T w_in_buff_daemon -T w_out_buff_daemon -T d_block_daemon -T In_wrap_daemon -T Out_wrap_daemon
@@ -32,9 +34,14 @@ aalink: $(AA)/e_block.aa $(AA)/sbox.aa $(AA)/enc_round.aa $(AA)/c_block.aa $(AA)
 aa2vc: $(TMP)/prog.linked.opt.aa
 	Aa2VC -O -C $(TMP)/prog.linked.opt.aa | vcFormat > $(TMP)/prog.vc
 
+aa2c: $(TMP)/prog.linked.opt.aa
+	Aa2C -P aes_ $(TMP)/prog.linked.opt.aa -o $(Aa2C) $(TOPMODULES)
+	indent -orig $(Aa2C)/aes_aa_c_model.c
+	indent -orig $(Aa2C)/aes_aa_c_model.h
+
 # vC to VHDL
 vc2vhdl: $(TMP)/prog.vc
-	vc2vhdl -O -S 4 -I 2 -a -C -e ahir_system -w -s ghdl $(TOPMODULES) -f $(TMP)/prog.vc -L $(FUNCTIONLIB)/fpu.list
+	vc2vhdl -O -S 4 -I 2 -a -C -e ahir_system -w -s ghdl $(TOPMODULES) -f $(TMP)/prog.vc 
 	vhdlFormat < ahir_system_global_package.unformatted_vhdl > $(VHDL)/ahir_system_global_package.vhdl
 	vhdlFormat < ahir_system.unformatted_vhdl > $(VHDL)/ahir_system.vhdl
 	vhdlFormat < ahir_system_test_bench.unformatted_vhdl > $(VHDL)/ahir_system_test_bench.vhdl
@@ -58,6 +65,12 @@ vhdlsim: vhdl/ahir_system.vhdl vhdl/ahir_system_test_bench.vhdl $(TB)/testbench.
 	mv ahir_system_test_bench $(BIN)/
 	mv *.o $(TMP)/
 	mv *.cf $(TMP)/
+
+aa2c_tb: $(TB)/testbench.c $(Aa2C)/aes_aa_c_model.h $(Aa2C)/aes_aa_c_model.c
+	gcc -g -c $(Aa2C)/aes_aa_c_model.c -I$(AHIR_INCLUDE) -I$(TB) -I$(Aa2C) -I./ -DAA2C
+	gcc -g -c $(TB)/testbench.c -I$(AHIR_INCLUDE) -I$(TB) -I$(Aa2C) -I./ -DAA2C
+	gcc -g -o $(BIN)/testbench_aa2c testbench.o aes_aa_c_model.o  -L$(AHIR_LIB) -lPipeHandlerDebugPthreads -lpthread -lBitVectors -lSockPipes
+	mv *.o $(TMP)/
 
 clean:
 	rm -rf $(TMP)/*.o* $(TMP)/*.cf $(VHDL)/*.*vhdl vhdlCStubs.* $(TMP)/*.aa $(TMP)/*.dot $(TMP)/*.vc $(BIN)/*_test_bench  $(BIN)/testbench_*

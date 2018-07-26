@@ -26,21 +26,28 @@ $module [In_wrap_daemon] $in() $out() $is
 	$constant ONE_COUNT : $uint<15> := 1
 	$constant MAX_COUNT : $uint<15> := 511 //127
 	
+
+	$rreport (In_wrap_daemon started__)
 	$branchblock[MAIN] {
+
+		$merge $entry restart_place $endmerge
 		
 		// read from in-buf
 		head_in := w_in_buf
 		
 		// split into two parts.
 		$volatile $split (head_in 64 64) (head0 head1)
+		$rreport (In_wrap_daemon read_from_w_in_buf head0 head1)
 		
 		// head1 is interpreted as a command.
 		//  (head0 is ignored??)
 		// sent to cmd_in for E/D processing and
 		cmd_in := head1
+		$rreport (In_wrap_daemon sent_to_cmd_in head1)
 
 		// out_wrap_cmd for routing info.
 		out_wrap_cmd := head1
+		$rreport (In_wrap_daemon sent_to_out_wrap_cmd head1)
 		
 		$volatile $split (head1 1 3 1 44 15) (ED mode got_new_key xxx count)
 		$if (got_new_key == 1) $then 
@@ -49,7 +56,9 @@ $module [In_wrap_daemon] $in() $out() $is
 			$split (key 64 64) (keyA keyB)
 			// send keys on cmd-in
 			cmd_in := keyA
+			$rreport (In_wrap_daemon sent_key_A_to_cmd_in  keyA)
 			cmd_in := keyB
+			$rreport (In_wrap_daemon sent_key_B_to_cmd_in  keyB)
 		$endif
 		
 
@@ -97,6 +106,8 @@ $module [In_wrap_daemon] $in() $out() $is
 			$endif
 		$endif
 		
+
+		$place [restart_place]
 	}
 }
 
@@ -112,6 +123,8 @@ $module [Out_wrap_daemon] $in() $out() $is
 	$constant MAX_COUNT : $uint<15>:= 511 //127
 	$branchblock[MAIN] {
 		
+		$merge $entry restart_place $endmerge
+
 		// recv command 
 		head_out := out_wrap_cmd
 
@@ -161,6 +174,8 @@ $module [Out_wrap_daemon] $in() $out() $is
 				$endif
 			$endif
 		$endif
+
+		$place [restart_place]
 	}
 }
 
@@ -173,6 +188,8 @@ $module [w_in_buff_daemon] $in() $out () $is
 
 			Ina := in_data
 			Inb := in_data
+			
+			$rreport (w_in_buff_daemon read_data Ina Inb)
 			w_in_buf := ($concat Ina Inb)
 
 		$while 1
