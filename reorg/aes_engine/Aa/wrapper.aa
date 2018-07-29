@@ -4,7 +4,7 @@ $pipe out_wrap_cmd : $uint<64> $depth 2
 $pipe out_wrap_data : $uint<128> $depth 2
 
 // data in/out.
-$pipe w_in_buf : $uint<128> $depth 512
+$pipe w_in_buf  : $uint<128> $depth 516
 $pipe w_out_buf : $uint<128> $depth 512
 
 // What the ^%&% is this %&&%& doing?

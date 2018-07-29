@@ -1,5 +1,5 @@
-$pipe d_in_buf : $uint<128> $depth 2 
-$pipe d_out_buf : $uint<128> $depth 2 
+$pipe d_in_buf   : $uint<128> $depth 2 
+$pipe d_out_buf  : $uint<128> $depth 2 
 $pipe d_cmd_pipe : $uint<144> $depth 2
 $noblock $pipe d_block_done : $uint<1> $depth 2
 

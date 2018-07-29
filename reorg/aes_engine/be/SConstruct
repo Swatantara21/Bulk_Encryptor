@@ -1,0 +1,8 @@
+import os
+
+env = Environment(ENV = {'PATH' : os.environ['PATH']})
+env.Append(CPPPATH = './src/:./include:/usr/local/include/:')
+
+env.Library('lib/libBe', Glob('src/*.c'), CCFLAGS='-g ')
+env.Program('bin/iitbBe', 'util/testutil.c', CCFLAGS='-g ',LINKFLAGS='-g ', LIBS=['Be', 'riffa'], LIBPATH=Split('./lib/  /usr/local/lib/'))
+

@@ -5,9 +5,9 @@
 #include <pthread.h>
 
 #include "pthreadUtils.h"
-
 #include "timer.h"
 #include "riffa.h"
+
 //#ifndef SW
 //#include "vhdlCStubs.h"
 //#endif
